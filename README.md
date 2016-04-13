@@ -76,10 +76,14 @@ TODO
 
 We endeavor to follow semantic versioning.  In particular, versions < 1.0 may introduce backward-incompatible changes without notice.  Use at your own risk.  Version 1.0 signals a stable API.
 
+## Contributing
+
+1. Fork it ( https://github.com/[my-github-username]/duracloud-ruby-client/fork )
+2. Create your feature branch (`git checkout -b my-new-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin my-new-feature`)
+5. Create a new Pull Request
+
 ## Maintainers
 
 * [David Chandek-Stark](https://github.com/dchandekstark) (Duke University)
-
-## Contributing
-
-TODO

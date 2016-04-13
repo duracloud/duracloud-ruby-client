@@ -13,7 +13,7 @@ module Duracloud
 
     attr_reader :config
 
-    delegate [:host, :port, :user, :password, :base_url] => :config
+    delegate [:host, :port, :user, :password, :base_url, :logger] => :config
 
     def initialize(**options)
       @config = Configuration.new(**options)
@@ -21,7 +21,6 @@ module Duracloud
 
     def get_content(url, **options)
       execute ContentRequest, :get, url, **options
-      #ContentRequest.get(self, url, **options)
     end
 
     def get_content_properties(url, **options)
@@ -40,8 +39,25 @@ module Duracloud
       execute ContentRequest, :delete, url, **options
     end
 
+    private
+
     def execute(request_class, http_method, url, **options)
-      request_class.new(self, http_method, url, **options).execute
+      request = request_class.new(self, http_method, url, **options)
+      response = request.execute
+      handle_response(response)
+      response
+    end
+
+    def handle_response(response)
+      logger.debug([self.class.to_s, response.request_method, response.url,
+                    response.status, response.reason].join(' '))
+      if response.error?
+        ErrorHandler.call(response)
+      elsif %w(POST PUT DELETE).include?(response.request_method) &&
+            response.plain_text? &&
+            response.has_body?
+        logger.info(response.body)
+      end
     end
   end
 end

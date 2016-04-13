@@ -45,14 +45,4 @@ module Duracloud
       response.plain_text? && response.has_body?
     end
   end
-
-  # class StoreContentErrorHandler < ErrorHandler
-  #   def handle_400
-  #     InvalidContentIDError
-  #   end
-
-  #   def handle_409
-  #     ChecksumError
-  #   end
-  # end
 end

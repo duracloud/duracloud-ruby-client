@@ -5,18 +5,6 @@ module Duracloud
   class Response
     extend Forwardable
 
-    # class << self
-    #   def error_handler
-    #     @error_handler ||=
-    #       begin
-    #         class_name = self.name.split(/::/).last.sub(/Response\z/, "ErrorHandler")
-    #         Duracloud.const_get(class_name)
-    #       rescue NameError
-    #         superclass.error_handler
-    #       end
-    #   end
-    # end
-
     attr_reader :original_response
 
     delegate [:header, :body, :code, :ok?, :redirect?, :status, :reason] => :original_response,
@@ -24,11 +12,10 @@ module Duracloud
              [:size, :empty?] => :body
 
     def_delegator :header, :request_uri, :url
+    def_delegator :header, :request_method
 
     def initialize(original_response)
       @original_response = original_response
-      #self.class.error_handler.call(self) if error?
-      ErrorHandler.call(self) if error?
     end
 
     def error?

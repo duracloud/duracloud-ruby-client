@@ -15,9 +15,9 @@ module Duracloud
 
     def headers
       Hash.new.tap do |h|
+        h.update(properties) if properties
         h["Content-MD5"] = md5 if md5
         h["Content-Type"] = content_type if content_type
-        h.update(properties) if properties
       end
     end
 

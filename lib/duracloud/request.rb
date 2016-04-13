@@ -14,12 +14,14 @@ module Duracloud
     end
 
     def execute
-      original_response = connection.send(http_method,
-                                          url,
-                                          body: options.payload,
-                                          query: options.query,
-                                          header: options.headers)
-      response_class.new(original_response)
+      begin
+        original_response = connection.send(http_method,
+                                            url,
+                                            body: options.payload,
+                                            query: options.query,
+                                            header: options.headers)
+        response_class.new(original_response)
+      end
     end
 
     private

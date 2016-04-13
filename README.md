@@ -54,7 +54,7 @@ If a relative URL is given (`:url` keyword option, or a combination of `:space_i
  => "test"
 > new_content.content_type = "text/plain"
  => "text/plain"
-> new_content.store
+> new_content.save
  => #<Duracloud::Content url="rest-api-testing/ark:/99999/fk4zzzz">
 ```
 
@@ -78,7 +78,7 @@ We endeavor to follow semantic versioning.  In particular, versions < 1.0 may in
 
 ## Maintainers
 
-* David Chandek-Stark (Duke University)
+* [David Chandek-Stark](https://github.com/dchandekstark) (Duke University)
 
 ## Contributing
 

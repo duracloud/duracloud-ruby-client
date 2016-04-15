@@ -1,5 +1,4 @@
 require "forwardable"
-require_relative "error_handler"
 
 module Duracloud
   class Response

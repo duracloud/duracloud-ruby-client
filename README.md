@@ -43,32 +43,71 @@ end
  => #<Duracloud::Client:0x007fe953a1c630 @config=#<Duracloud::Configuration host="foo.duracloud.org", port=nil, user="bob@example.com", password="******">>
  ```
 
-### Create a new content item and store it in DuraCloud
+#### Logging
 
-If a relative URL is given (`:url` keyword option, or a combination of `:space_id` and `:content_id` options), the fully-qualified URL is built in the standard way from the base URL `https://{host}:{port}/durastore/`.
-
-```
-> new_content = Duracloud::Content.new(space_id: "rest-api-testing", content_id: "ark:/99999/fk4zzzz")
- => #<Duracloud::Content url="rest-api-testing/ark:/99999/fk4zzzz">
-> new_content.body = "test"
- => "test"
-> new_content.content_type = "text/plain"
- => "text/plain"
-> new_content.save
- => #<Duracloud::Content url="rest-api-testing/ark:/99999/fk4zzzz">
-```
-
-### Retrieve an existing content item from DuraCloud
+By default, `Duracloud::Client` logs to `STDERR`.  Use the `logger` config setting to change:
 
 ```ruby
-Duracloud::Content.find(**options) # :url, or :space_id and :content_id
+Duracloud::Client.configure do |config|
+  config.logger = Rails.logger
+end
 ```
 
-### Update the properties for an item
+### List Storage Providers
+
+```
+> stores = Duracloud::Store.all
+ => [#<Duracloud::Store:0x007faa592e9068 @owner_id="0", @primary="0", @id="1", @provider_type="AMAZON_GLACIER">, #<Duracloud::Store:0x007faa592dbd78 @owner_id="0", @primary="1", @id="2", @provider_type="AMAZON_S3">]
+
+> stores.first.primary?
+ => false 
+```
+
+### Space Methods
 
 TODO
 
-### Delete a content item
+### Content Methods
+
+#### Create a new content item and store it in DuraCloud
+
+1. Initialize instance of `Duracloud::Content` and save:
+
+```
+>> new_content = Duracloud::Content.new(space_id: "rest-api-testing", id: "ark:/99999/fk4zzzz")
+ => #<Duracloud::Content space_id="rest-api-testing", id="ark:/99999/fk4zzzz">
+ 
+>> new_content.body = "test"
+ => "test"
+
+>> new_content.content_type = "text/plain"
+ => "text/plain"
+ 
+>> new_content.save
+ => #<Duracloud::Content space_id="rest-api-testing", id="ark:/99999/fk4zzzz">
+```
+
+2. Create with class method `Duracloud::Content.create`:
+
+```
+>> Duracloud::Content.create(space_id: "rest-api-testing", id="ark:/99999/fk4zzzz") do |c|
+     c.body = "test"
+     c.content_type = "text/plain"
+   end
+ => #<Duracloud::Content space_id="rest-api-testing", id="ark:/99999/fk4zzzz">
+```
+
+#### Retrieve an existing content item from DuraCloud
+
+```ruby
+Duracloud::Content.find(id: "contentID", space_id: "spaceID") 
+```
+
+#### Update the properties for an item
+
+TODO
+
+#### Delete a content item
 
 TODO
 

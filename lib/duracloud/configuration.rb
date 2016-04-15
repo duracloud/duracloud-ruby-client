@@ -1,7 +1,9 @@
 require "logger"
+require "uri"
 
 module Duracloud
   class Configuration
+
     class << self
       attr_accessor :host, :port, :user, :password, :logger
     end
@@ -13,7 +15,7 @@ module Duracloud
       @port     = port     || default(:port)
       @user     = user     || default(:user)
       @password = password || default(:password)
-      @logger   = logger   || default(:logger)
+      @logger   = logger   || Logger.new(STDERR)
       freeze
     end
 
@@ -21,18 +23,16 @@ module Duracloud
       URI::HTTPS.build(host: host, port: port)
     end
 
+    def inspect
+      "#<#{self.class} host=#{host.inspect}, port=#{port.inspect}, user=#{user.inspect}," \
+      " password=\"******\", logger=#{logger.inspect}>"
+    end
+
     private
 
     def default(attr)
-      if attr == :logger
-        self.class.logger || Logger.new(STDERR)
-      else
-        self.class.send(attr) || ENV["DURACLOUD_#{attr.to_s.upcase}"]
-      end
+      self.class.send(attr) || ENV["DURACLOUD_#{attr.to_s.upcase}"]
     end
 
-    def inspect
-      "#<#{self.class} host=#{host.inspect}, port=#{port.inspect}, user=#{user.inspect}, password=\"******\">"
-    end
   end
 end

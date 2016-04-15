@@ -1,26 +1,33 @@
-require_relative "connection"
-require_relative "response"
-require_relative "request_options"
+require "duracloud/connection"
+require "duracloud/response"
 
 module Duracloud
   class Request
-    attr_reader :client, :url, :http_method, :options
+    attr_reader :client, :url, :http_method, :body, :headers, :query
 
-    def initialize(client, http_method, url, **options)
+    # @param client [Duracloud::Client] the client
+    # @param http_method [Symbol] the lower-case symbol corresponding to HTTP method
+    # @param url [String] relative or absolute URL
+    # @param body [String] the body of the request
+    # @param headers [Hash] HTTP headers
+    # @param query [Hash] Query string parameters
+    def initialize(client, http_method, url, body: nil, headers: nil, query: nil)
       @client      = client
       @http_method = http_method
       @url         = url
-      @options = RequestOptions.new(**options)
+      @body        = body
+      @headers     = headers
+      @query       = query
     end
 
     def execute
       begin
         original_response = connection.send(http_method,
                                             url,
-                                            body: options.payload,
-                                            query: options.query,
-                                            header: options.headers)
-        response_class.new(original_response)
+                                            body: body,
+                                            query: query,
+                                            header: headers)
+        Response.new(original_response)
       end
     end
 
@@ -28,10 +35,6 @@ module Duracloud
 
     def base_path
       '/'
-    end
-
-    def response_class
-      Response
     end
 
     def connection

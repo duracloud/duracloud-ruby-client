@@ -1,11 +1,19 @@
 require "forwardable"
-require_relative "configuration"
-require_relative "connection"
-require_relative "content_request"
+
+require "duracloud/configuration"
+require "duracloud/connection"
+require "duracloud/error_handler"
+require "duracloud/rest_methods"
 
 module Duracloud
   class Client
     extend Forwardable
+    extend RestMethods
+    include RestMethods
+
+    def self.execute(request_class, http_method, url, **options)
+      new.execute(request_class, http_method, url, **options)
+    end
 
     def self.configure
       yield Configuration
@@ -19,34 +27,14 @@ module Duracloud
       @config = Configuration.new(**options)
     end
 
-    def get_content(url, **options)
-      execute ContentRequest, :get, url, **options
-    end
-
-    def get_content_properties(url, **options)
-      execute ContentRequest, :head, url, **options
-    end
-
-    def set_content_properties(url, **options)
-      execute ContentRequest, :post, url, **options
-    end
-
-    def store_content(url, **options)
-      execute ContentRequest, :put, url, **options
-    end
-
-    def delete_content(url, **options)
-      execute ContentRequest, :delete, url, **options
-    end
-
-    private
-
     def execute(request_class, http_method, url, **options)
       request = request_class.new(self, http_method, url, **options)
       response = request.execute
       handle_response(response)
       response
     end
+
+    private
 
     def handle_response(response)
       logger.debug([self.class.to_s, response.request_method, response.url,

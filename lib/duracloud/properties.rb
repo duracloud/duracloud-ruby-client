@@ -1,6 +1,7 @@
 require 'hashie'
 
 module Duracloud
+  # @abstract
   class Properties < Hashie::Mash
 
     PREFIX = "x-dura-meta-".freeze
@@ -22,12 +23,37 @@ module Duracloud
     # Properties set by the DuraCloud SyncTool
     SYNCTOOL = /\A#{PREFIX}(creator|(content-file-(created|modified|last-accessed-path)))\z/
 
+    def self.inherited(subclass)
+      subclass.class_eval do
+        include Hashie::Extensions::Coercion
+
+        # Hashie coercions are not inherited
+        coerce_value Array, ->(v) { v.first }
+      end
+    end
+
     def self.filter(hsh)
       hsh.select { |k, v| property?(k) }
     end
 
+    def self.internal?(prop)
+      INTERNAL =~ prop
+    end
+
+    def self.space?(prop)
+      SPACE =~ prop
+    end
+
+    def self.space_acl?(prop)
+      SPACE_ACLS =~ prop
+    end
+
+    def self.copy_content?(prop)
+      COPY_CONTENT =~ prop
+    end
+
     def self.property?(prop)
-      ( /\A#{PREFIX}/ =~ prop ) && ( INTERNAL !~ prop )
+      prop.start_with?(PREFIX) && !internal?(prop)
     end
 
     def regular_writer(key, value)
@@ -53,24 +79,6 @@ module Duracloud
         value.force_encoding(ENCODING)
       end
     end
-
-    # def changed?
-    #   !!@changed
-    # end
-
-    # def update(other)
-    #   super self.class.filter(other)
-    # end
-
-    # def replace(other)
-    #   super self.class.filter(other)
-    # end
-
-    # private
-
-    # def changed!
-    #   @changed = true
-    # end
 
   end
 end

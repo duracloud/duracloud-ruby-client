@@ -5,15 +5,17 @@ module Duracloud
   class SpaceProperties < Properties
 
     def self.property?(prop)
-      space?(prop)
+      space_property?(prop)
     end
 
     def count
-      x_dura_meta_space_count.to_i
+      space_count.to_i
     end
 
     def created
-      DateTime.parse(x_dura_meta_space_created)
+      DateTime.parse(space_created)
+    rescue ArgumentError
+      space_created
     end
 
   end

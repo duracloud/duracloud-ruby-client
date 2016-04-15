@@ -19,33 +19,5 @@ module Duracloud
       end
     end
 
-    def user
-      @user ||= UserAcls.new(self)
-    end
-
-    def group
-      @group ||= GroupAcls.new(self)
-    end
-
-    class UserAcls < SimpleDelegator
-      def convert_key(key)
-        converted = super
-        converted.prepend(PREFIX) unless converted.start_with?(PREFIX)
-        converted
-      end
-    end
-
-    class GroupAcls < SimpleDelegator
-      def group_prefix
-        PREFIX + "group-"
-      end
-
-      def convert_key(key)
-        converted = super
-        converted.prepend(group_prefix) unless converted.start_with?(group_prefix)
-        converted
-      end
-    end
-
   end
 end

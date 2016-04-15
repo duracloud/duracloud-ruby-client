@@ -66,7 +66,7 @@ module Duracloud
     end
 
     def space
-      @space ||= Space.new(space_id)
+      Space.find(space_id)
     end
 
     def inspect

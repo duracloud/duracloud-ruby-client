@@ -1,5 +1,3 @@
-require "duracloud/request"
-
 module Duracloud
   class DurastoreRequest < Request
    def base_path

@@ -2,11 +2,6 @@ require "date"
 require "nokogiri"
 require "forwardable"
 
-require "duracloud/persistence"
-require "duracloud/has_properties"
-require "duracloud/space_properties"
-require "duracloud/space_acls"
-
 module Duracloud
   class Space
     extend Forwardable

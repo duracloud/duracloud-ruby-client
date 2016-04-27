@@ -1,5 +1,3 @@
-require "duracloud/durastore_request"
-
 module Duracloud
   module RestMethods
 
@@ -56,27 +54,27 @@ module Duracloud
     end
 
     def get_audit_log
-      raise NotImplementedError
+      durastore :get, "audit/#{space_id}"
     end
 
-    def get_manifest
-      raise NotImplementedError
+    def get_manifest(space_id)
+      durastore :get, "manifest/#{space_id}"
     end
 
-    def get_bit_integrity_report
-      raise NotImplementedError
+    def get_bit_integrity_report(space_id)
+      durastore :get, "bit-integrity/#{space_id}"
     end
 
-    def get_bit_integrity_report_properties
-      raise NotImplementedError
+    def get_bit_integrity_report_properties(space_id)
+      durastore :head, "bit-integrity/#{space_id}"
     end
 
     def get_tasks
-      raise NotImplementedError
+      raise NotImplementedError, "The API method 'Get Tasks' has not been implemented."
     end
 
     def perform_task
-      raise NotImplementedError
+      raise NotImplementedError, "The API method 'Perform Task' has not been implemented."
     end
 
     private

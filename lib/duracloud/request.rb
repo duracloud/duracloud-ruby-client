@@ -1,6 +1,3 @@
-require "duracloud/connection"
-require "duracloud/response"
-
 module Duracloud
   class Request
     attr_reader :client, :url, :http_method, :body, :headers, :query

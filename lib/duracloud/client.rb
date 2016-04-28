@@ -1,10 +1,5 @@
 require "forwardable"
 
-require "duracloud/configuration"
-require "duracloud/connection"
-require "duracloud/error_handler"
-require "duracloud/rest_methods"
-
 module Duracloud
   class Client
     extend Forwardable

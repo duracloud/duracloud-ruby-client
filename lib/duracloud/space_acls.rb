@@ -1,6 +1,3 @@
-require "delegate"
-require "duracloud/properties"
-
 module Duracloud
   class SpaceAcls < Properties
 

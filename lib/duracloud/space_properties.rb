@@ -1,5 +1,4 @@
 require "date"
-require "duracloud/properties"
 
 module Duracloud
   class SpaceProperties < Properties

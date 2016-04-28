@@ -2,10 +2,6 @@ require "uri"
 require "stringio"
 require "active_model"
 
-require "duracloud/content_properties"
-require "duracloud/persistence"
-require "duracloud/has_properties"
-
 module Duracloud
   #
   # A piece of content in DuraCloud

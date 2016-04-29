@@ -37,8 +37,16 @@ module Duracloud
       Error
     end
 
+    def handle_400
+      BadRequestError
+    end
+
     def handle_404
       NotFoundError
+    end
+
+    def handle_409
+      ConflictError
     end
 
     def response_has_error_message?

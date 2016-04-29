@@ -6,6 +6,10 @@ module Duracloud
 
     class << self
       attr_accessor :host, :port, :user, :password, :logger
+
+      def silence_logging!
+        self.logger = Logger.new(File::NULL)
+      end
     end
 
     attr_reader :host, :port, :user, :password, :logger
@@ -15,7 +19,7 @@ module Duracloud
       @port     = port     || default(:port)
       @user     = user     || default(:user)
       @password = password || default(:password)
-      @logger   = logger   || Logger.new(STDERR)
+      @logger   = logger   || self.class.logger || Logger.new(STDERR)
       freeze
     end
 
@@ -24,8 +28,8 @@ module Duracloud
     end
 
     def inspect
-      "#<#{self.class} host=#{host.inspect}, port=#{port.inspect}, user=#{user.inspect}," \
-      " password=\"******\", logger=#{logger.inspect}>"
+      "#<#{self.class} host=#{host.inspect}, port=#{port.inspect}," \
+      " user=#{user.inspect}>"
     end
 
     private

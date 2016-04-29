@@ -1,6 +1,6 @@
 module Duracloud
   class DurastoreRequest < Request
-   def base_path
+    def base_path
       '/durastore/'
     end
   end

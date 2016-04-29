@@ -11,9 +11,13 @@ module Duracloud
       super()
       @space = space
       if space.persisted?
-        response = Client.get_space_acls(space.id)
-        update SpaceAcls.filter(response.headers)
+        response = Client.get_space_acls(space.space_id, **query)
+        update filter(response.headers)
       end
+    end
+
+    def query
+      { storeID: space.store_id }
     end
 
   end

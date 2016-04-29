@@ -2,85 +2,97 @@ module Duracloud
   module RestMethods
 
     def get_stores
-      durastore :get, "stores"
+      durastore(:get, "stores")
     end
 
-    def get_spaces
-      durastore :get, "spaces"
+    def get_spaces(**query)
+      durastore(:get, "spaces", **query)
     end
 
-    def get_space(space_id, query: nil)
-      durastore :get, space_id, query: query
+    def get_space(space_id, **query)
+      durastore(:get, space_id, **query)
     end
 
-    def get_space_properties(space_id)
-      durastore :head, space_id
+    def get_space_properties(space_id, **query)
+      durastore(:head, space_id, **query)
     end
 
-    def get_space_acls(space_id)
-      durastore :head, "acl/#{space_id}"
+    def get_space_acls(space_id, **query)
+      durastore(:head, "acl/#{space_id}", **query)
     end
 
-    def set_space_acls(space_id, acls)
-      durastore :post, space_id, properties: acls
+    def set_space_acls(space_id, **options)
+      durastore(:post, "acl/#{space_id}", **options)
     end
 
-    def create_space(space_id)
-      durastore :put, space_id
+    def create_space(space_id, **query)
+      durastore(:put, space_id, **query)
     end
 
-    def delete_space(space_id)
-      durastore :delete, space_id
+    def delete_space(space_id, **query)
+      durastore(:delete, space_id, **query)
     end
 
-    def get_content(url, **options)
-      durastore :get, url, **options
+    def get_content(space_id, content_id, **options)
+      durastore_content(:get, space_id, content_id, **options)
     end
 
-    def get_content_properties(url, **options)
-      durastore :head, url, **options
+    def get_content_properties(space_id, content_id, **options)
+      durastore_content(:head, space_id, content_id, **options)
     end
 
-    def set_content_properties(url, **options)
-      durastore :post, url, **options
+    def set_content_properties(space_id, content_id, **options)
+      durastore_content(:post, space_id, content_id, **options)
     end
 
-    def store_content(url, **options)
-      durastore :put, url, **options
+    def store_content(space_id, content_id, **options)
+      durastore_content(:put, space_id, content_id, **options)
     end
 
-    def delete_content(url, **options)
-      durastore :delete, url, **options
+    def copy_content(space_id, content_id, **options)
+      raise NotImplementedError,
+            "The API method 'Copy Content' has not yet been implemented."
     end
 
-    def get_audit_log
-      durastore :get, "audit/#{space_id}"
+    def delete_content(space_id, content_id, **options)
+      durastore_content(:delete, space_id, content_id, **options)
     end
 
-    def get_manifest(space_id)
-      durastore :get, "manifest/#{space_id}"
+    def get_audit_log(space_id, **query)
+      durastore(:get, "audit/#{space_id}", **query)
     end
 
-    def get_bit_integrity_report(space_id)
-      durastore :get, "bit-integrity/#{space_id}"
+    def get_manifest(space_id, **query)
+      durastore(:get, "manifest/#{space_id}", **query)
     end
 
-    def get_bit_integrity_report_properties(space_id)
-      durastore :head, "bit-integrity/#{space_id}"
+    def get_bit_integrity_report(space_id, **query)
+      durastore(:get, "bit-integrity/#{space_id}", **query)
     end
 
-    def get_tasks
-      raise NotImplementedError, "The API method 'Get Tasks' has not been implemented."
+    def get_bit_integrity_report_properties(space_id, **query)
+      durastore(:head, "bit-integrity/#{space_id}", **query)
     end
 
-    def perform_task
-      raise NotImplementedError, "The API method 'Perform Task' has not been implemented."
+    def get_tasks(**query)
+      raise NotImplementedError,
+            "The API method 'Get Tasks' has not been implemented."
+    end
+
+    def perform_task(task_name, **query)
+      raise NotImplementedError,
+            "The API method 'Perform Task' has not been implemented."
     end
 
     private
 
     def durastore(*args)
       execute(DurastoreRequest, *args)
+    end
+
+    def durastore_content(http_method, space_id, content_id, **options)
+      url = [ space_id, content_id ].join("/")
+      durastore(http_method, url, **options)
     end
 
   end

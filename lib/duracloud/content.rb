@@ -1,4 +1,3 @@
-require "uri"
 require "stringio"
 require "active_model"
 
@@ -13,67 +12,59 @@ module Duracloud
 
     after_save :changes_applied
 
+    # Does the content exist in DuraCloud?
+    # @see .new for arguments
+    # @return [Boolean] whether the content exists
+    def self.exist?(*args)
+      find(*args) && true
+    rescue NotFoundError
+      false
+    end
+
     # Find content in DuraCloud.
-    #
-    # @param id [String] the content ID
-    # @param space_id [String] the space ID.
+    # @see .new for arguments
     # @return [Duraclound::Content] the content
-    # @raise [Duracloud::NotFoundError] the space or content ID does not exist.
-    def self.find(id:, space_id:)
-      new(id: id, space_id: space_id) do |content|
-        content.load_properties
-      end
+    # @raise [Duracloud::NotFoundError] the space, content, or store does not exist.
+    def self.find(*args)
+      new(*args) { |content| content.load_properties }
     end
 
-    # Store content in DuraCloud
-    #
-    # @param id [String] The content ID
-    # @param space_id [String] The space ID.
-    # @param body [String, #read] The content body
-    # @return [Duracloud::Content] the content
-    # @raise [Duracloud::NotFoundError] if the space ID does not exist
-    # @raise [Duracloud::Error] if the body is empty.
-    def self.create(id:, space_id:, body:)
-      new(id: id, space_id: space_id) do |content|
-        content.body = body
-        yield content if block_given?
-        content.save
-      end
-    end
+    attr_reader :space_id, :content_id, :store_id
+    alias_method :id, :content_id
 
-    attr_reader :id, :space_id
+    define_attribute_methods :content_type, :body
 
-    define_attribute_methods :content_type, :body, :md5
-
-    # Initialize a new piece of content
-    #
-    # @param id [String] The content ID
-    # @param space_id [String] The space ID
-    #
+    # @param space_id [String] The space ID (required)
+    # @param content_id [String] The content ID (required)
+    # @param store_id [String] the store ID (optional)
     # @example
-    #   new(id: mycontent.txt", space_id: "myspace")
-    def initialize(id:, space_id:)
-      @id = id.freeze
-      @space_id = space_id.freeze
-      @body = nil
-      @content_type = nil
-      @md5 = nil
+    #   new("myspace", "mycontent.txt")
+    def initialize(space_id, content_id, store_id = nil)
+      @content_id = content_id
+      @space_id = space_id
+      @store_id = store_id
+      @body, @content_type = nil, nil
       yield self if block_given?
     end
 
+    # Return the space associated with this content.
+    # @return [Duracloud::Space] the space.
+    # @raise [Duracloud::NotFoundError] the space or store does not exist.
     def space
-      Space.find(space_id)
+      Space.find(space_id, store_id)
     end
 
     def inspect
-      "#<#{self.class} id=#{id.inspect}, space_id=#{space_id.inspect}>"
+      "#<#{self.class} space_id=#{space_id.inspect}," \
+      " content_id=#{content_id.inspect}," \
+      " store_id=#{store_id || '(default)'}>"
     end
 
     # @api private
     # @raise [Duracloud::NotFoundError] the content does not exist in DuraCloud.
     def load_body
-      response = Client.get_content(url)
-      @body = response.body # don't use setter
+      response = Client.get_content(*args, **query)
+      set_body(response) # don't use setter b/c marks as dirty
       persisted!
     end
 
@@ -85,18 +76,19 @@ module Duracloud
     end
 
     def body=(str_or_io)
-      val = read_string_or_io(str_or_io)
-      raise ArgumentError, "Cannot set body to empty string." if val.empty?
-      self.md5 = Digest::MD5.hexdigest(val)
-      body_will_change! if md5_changed?
-      @body = StringIO.new(val, "r")
+      set_body(str_or_io)
+      body_will_change!
     end
 
+    # Return the content body, loading from DuraCloud if necessary.
+    # @return [String, StringIO] the content body
     def body
       load_body if persisted? && empty?
       @body
     end
 
+    # Is the content empty?
+    # @return [Boolean] whether the content is empty (nil or empty string)
     def empty?
       @body.nil? || @body.size == 0
     end
@@ -110,34 +102,34 @@ module Duracloud
       @content_type
     end
 
-    def md5
-      @md5
-    end
-
     private
 
-    def md5=(val)
-      md5_will_change! unless val == @md5
-      @md5 = val
+    def set_body(str_or_io)
+      @body = StringIO.new(read_string_or_io(str_or_io), "r")
     end
 
     def set_properties
       headers = properties.to_h
       headers["Content-Type"] = content_type if content_type_changed?
-      response = Client.set_content_properties(url, headers: headers)
-      # response.body is a text message -- log?
+      options = { headers: headers, query: query }
+      Client.set_content_properties(*args, **options)
     end
 
     def store
-      headers = { "Content-MD5" => md5,
-                  "Content-Type" => content_type || "application/octet-stream" }
+      headers = {
+        "Content-MD5"  => md5,
+        "Content-Type" => content_type || "application/octet-stream"
+      }
       headers.merge!(properties)
-      response = Client.store_content(url, body: body, headers: headers)
-      # response.body is a text message -- log?
+      options = { body: body, headers: headers, query: query }
+      Client.store_content(*args, **options)
     end
 
-    def url
-      [space_id, id].join("/")
+    def md5
+      body.rewind
+      Digest::MD5.hexdigest(body.read)
+    ensure
+      body.rewind
     end
 
     def properties_class
@@ -145,11 +137,11 @@ module Duracloud
     end
 
     def get_properties_response
-      Client.get_content_properties(url)
+      Client.get_content_properties(*args, **query)
     end
 
     def do_delete
-      Client.delete_content(url)
+      Client.delete_content(*args, **query)
     end
 
     def do_save
@@ -179,6 +171,14 @@ module Duracloud
       ensure
         io_like.rewind if io_like.respond_to?(:rewind)
       end
+    end
+
+    def args
+      [ space_id, content_id ]
+    end
+
+    def query
+      { storeID: store_id }
     end
 
   end

@@ -1,4 +1,4 @@
-require "active_model/callbacks"
+require "active_model"
 
 module Duracloud
   module Persistence

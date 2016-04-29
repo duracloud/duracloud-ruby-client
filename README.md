@@ -151,11 +151,46 @@ If the space or content ID does not exist, a `Duracloud::NotFoundError` is raise
 
 #### Update the properties for a content item
 
-TODO
+```
+>> space = Duracloud::Space.find("rest-api-testing")
+ => #<Duracloud::Space space_id="rest-api-testing", store_id="(default)">
+
+>> content = space.find_content("foo3")
+D, [2016-04-29T18:31:16.975749 #32379] DEBUG -- : Duracloud::Client HEAD https://foo.duracloud.org/durastore/rest-api-testing/foo3 200 OK
+ => #<Duracloud::Content space_id="rest-api-testing", content_id="foo3", store_id=(default)>
+
+>> content.properties
+ => #<Duracloud::ContentProperties x-dura-meta-owner="ellen@example.com">
+
+>> content.properties.creator = "bob@example.com"
+>> content.save
+D, [2016-04-29T18:31:52.770195 #32379] DEBUG -- : Duracloud::Client POST https://foo.duracloud.org/durastore/rest-api-testing/foo3 200 OK
+I, [2016-04-29T18:31:52.770293 #32379]  INFO -- : Content foo3 updated successfully
+ => true
+
+>> content.properties.creator
+D, [2016-04-29T18:32:06.465928 #32379] DEBUG -- : Duracloud::Client HEAD https://foo.duracloud.org/durastore/rest-api-testing/foo3 200 OK
+ => "bob@example.com"
+```     
 
 #### Delete a content item
 
-TODO
+```
+>> space = Duracloud::Space.find("rest-api-testing")
+ => #<Duracloud::Space space_id="rest-api-testing", store_id="(default)">
+
+>> content = space.find_content("foo2")
+ => #<Duracloud::Content space_id="rest-api-testing", content_id="foo2", store_id=(default)>
+
+>> content.delete
+D, [2016-04-29T18:28:31.459962 #32379] DEBUG -- : Duracloud::Client DELETE https://foo.duracloud.org/durastore/rest-api-testing/foo2 200 OK
+I, [2016-04-29T18:28:31.460069 #32379]  INFO -- : Content foo2 deleted successfully
+ => #<Duracloud::Content space_id="rest-api-testing", content_id="foo2", store_id=(default)>
+
+>> Duracloud::Content.exist?("rest-api-testing", "foo2")
+D, [2016-04-29T18:29:03.935451 #32379] DEBUG -- : Duracloud::Client HEAD https://foo.duracloud.org/durastore/rest-api-testing/foo2 404 Not Found
+ => false
+```
 
 ## Versioning
 

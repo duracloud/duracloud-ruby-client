@@ -105,7 +105,7 @@ A `Duracloud::NotFoundError` exception is raise if the space does not exist.
 #### Enumerate the content IDs of the space
 
 ```
-> space.content_ids.each { |id| puts id }
+>> space.content_ids.each { |id| puts id }
 ark:/99999/fk4zzzz
 foo
 foo2
@@ -116,7 +116,7 @@ foo7
 foo8
  => nil
 
-> space.content_ids.to_a
+>> space.content_ids.to_a
  => ["ark:/99999/fk4zzzz", "foo", "foo2", "foo22", "foo3", "foo5", "foo7", "foo8"] 
 ```
 

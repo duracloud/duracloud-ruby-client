@@ -10,11 +10,18 @@ module Duracloud
       end
     end
 
+    # Return the properties associated with this resource,
+    #   loading from Duracloud if necessary.
+    # @return [Duracloud::Properties] the properties
+    # @raise [Duracloud::NotFoundError] if the resource is marked persisted
+    #   but does not exist in Duracloud
     def properties
       load_properties if persisted? && @properties.nil?
       @properties ||= properties_class.new
     end
 
+    # @api private
+    # @raise [Duracloud::NotFoundError] the resource does not exist in DuraCloud.
     def load_properties
       response = get_properties_response
       self.properties = response.headers

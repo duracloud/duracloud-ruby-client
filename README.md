@@ -40,7 +40,7 @@ end
 
 ```
 > c = Duracloud::Client.new
- => #<Duracloud::Client:0x007fe953a1c630 @config=#<Duracloud::Configuration host="foo.duracloud.org", port=nil, user="bob@example.com", password="******">>
+ => #<Duracloud::Client:0x007fe953a1c630 @config=#<Duracloud::Configuration host="foo.duracloud.org", port=nil, user="bob@example.com">>
  ```
 
 #### Logging
@@ -53,29 +53,80 @@ Duracloud::Client.configure do |config|
 end
 ```
 
+You can also silence logging:
+
+```ruby
+Duracloud::Client.configure do |config|
+  config.silence_logging! # sets logger device to null device
+end
+```
+
 ### List Storage Providers
 
 ```
-> stores = Duracloud::Store.all
+>> stores = Duracloud::Store.all
  => [#<Duracloud::Store:0x007faa592e9068 @owner_id="0", @primary="0", @id="1", @provider_type="AMAZON_GLACIER">, #<Duracloud::Store:0x007faa592dbd78 @owner_id="0", @primary="1", @id="2", @provider_type="AMAZON_S3">]
 
-> stores.first.primary?
- => false 
+>> stores.first.primary?
+ => false
+
+>> Duracloud::Store.primary
+ => #<Duracloud::Store:0x007faa592dbd78 @owner_id="0", @primary="1", @id="2", @provider_type="AMAZON_S3">
 ```
 
-### Space Methods
+### Spaces
 
-TODO
+#### Create a new space
 
-### Content Methods
+```
+>> space = Duracloud::Space.create("rest-api-testing2")
+D, [2016-04-29T12:12:32.641574 #28275] DEBUG -- : Duracloud::Client PUT https://foo.duracloud.org/durastore/rest-api-testing2 201 Created
+ => #<Duracloud::Space space_id="rest-api-testing2", store_id="(default)"> 
+```
+
+A `Duracloud::BadRequestError` is raise if the space ID is invalid (illegal characters, too long, etc.).
+
+#### Retrieve a space and view its properties
+
+```
+>> space = Duracloud::Space.find("rest-api-testing")
+D, [2016-04-29T12:15:12.593075 #28275] DEBUG -- : Duracloud::Client HEAD https://foo.duracloud.org/durastore/rest-api-testing 200 OK
+ => #<Duracloud::Space space_id="rest-api-testing", store_id="(default)">
+ 
+>> space.count
+ => 8
+
+>> space.created
+ => #<DateTime: 2016-04-05T17:59:11+00:00 ((2457484j,64751s,0n),+0s,2299161j)> 
+```
+
+A `Duracloud::NotFoundError` exception is raise if the space does not exist.
+
+#### Enumerate the content IDs of the space
+
+```
+> space.content_ids.each { |id| puts id }
+ark:/99999/fk4zzzz
+foo
+foo2
+foo22
+foo3
+foo5
+foo7
+foo8
+ => nil
+
+> space.content_ids.to_a
+ => ["ark:/99999/fk4zzzz", "foo", "foo2", "foo22", "foo3", "foo5", "foo7", "foo8"] 
+```
+
+### Content
 
 #### Create a new content item and store it in DuraCloud
 
-1. Initialize instance of `Duracloud::Content` and save:
-
 ```
->> new_content = Duracloud::Content.new(space_id: "rest-api-testing", id: "ark:/99999/fk4zzzz")
- => #<Duracloud::Content space_id="rest-api-testing", id="ark:/99999/fk4zzzz">
+>> new_content = Duracloud::Content.new("rest-api-testing", "ark:/99999/fk4zzzz")
+ => #<Duracloud::Content space_id="rest-api-testing", content_id="ark:/99999/fk4zzzz", store_id=(default)>
  
 >> new_content.body = "test"
  => "test"
@@ -84,26 +135,21 @@ TODO
  => "text/plain"
  
 >> new_content.save
- => #<Duracloud::Content space_id="rest-api-testing", id="ark:/99999/fk4zzzz">
+ => #<Duracloud::Content space_id="rest-api-testing", content_id="ark:/99999/fk4zzzz", store_id=(default)>
 ```
 
-2. Create with class method `Duracloud::Content.create`:
-
-```
->> Duracloud::Content.create(space_id: "rest-api-testing", id="ark:/99999/fk4zzzz") do |c|
-     c.body = "test"
-     c.content_type = "text/plain"
-   end
- => #<Duracloud::Content space_id="rest-api-testing", id="ark:/99999/fk4zzzz">
-```
+When storing content a `Duracloud::NotFoundError` is raised if the space does not exist. A `Duracloud::BadRequestError` is raised if the content ID is invalid.
 
 #### Retrieve an existing content item from DuraCloud
 
-```ruby
-Duracloud::Content.find(id: "contentID", space_id: "spaceID") 
+```
+>> Duracloud::Content.find("spaceID", "contentID")
+ => #<Duracloud::Content space_id="spaceID", content_id="contentID", store_id=(default)>
 ```
 
-#### Update the properties for an item
+If the space or content ID does not exist, a `Duracloud::NotFoundError` is raised.
+
+#### Update the properties for a content item
 
 TODO
 

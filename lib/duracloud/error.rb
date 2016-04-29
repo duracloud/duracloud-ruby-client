@@ -2,6 +2,6 @@ module Duracloud
   class Error < ::StandardError; end
   class ServerError < Error; end
   class NotFoundError < Error; end
-  class ChecksumError < Error; end
-  class InvalidContentIDError < Error; end
+  class BadRequestError < Error; end
+  class ConflictError < Error; end
 end

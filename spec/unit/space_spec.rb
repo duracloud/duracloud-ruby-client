@@ -1,5 +1,11 @@
 module Duracloud
   RSpec.describe Space do
-    # TODO
+
+    describe ".create"
+    describe ".find"
+    describe ".exist?"
+    describe "#save"
+    describe "#delete"
+
   end
 end

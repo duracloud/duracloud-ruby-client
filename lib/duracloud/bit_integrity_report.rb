@@ -1,5 +1,4 @@
 require "date"
-require "csv"
 
 module Duracloud
   class BitIntegrityReport
@@ -7,56 +6,71 @@ module Duracloud
     SUCCESS = "SUCCESS".freeze
     FAILURE = "FAILURE".freeze
 
-    CSV_OPTS = {
-      col_sep: '\t',
-      headers: :first_row,
-      write_headers: true,
-      return_headers: true,
-    }
+    COMPLETION_DATE_HEADER = "Bit-Integrity-Report-Completion-Date".freeze
+    RESULT_HEADER          = "Bit-Integrity-Report-Result".freeze
 
-    def self.success?(space_id)
-      new(space_id).success?
-    end
+    attr_reader :space_id, :store_id
 
-    attr_reader :space_id
-
-    def initialize(space_id)
+    def initialize(space_id, store_id = nil)
       @space_id = space_id
+      @store_id = store_id
+      @report, @properties = nil, nil
     end
 
-    def data
+    def tsv
       report.body
     end
 
     def completion_date
-      DateTime.parse(properties["Bit-Integrity-Report-Completion-Date"].first)
+      DateTime.parse(properties[COMPLETION_DATE_HEADER].first)
     end
 
     def result
-      properties["Bit-Integrity-Report-Result"].first
+      properties[RESULT_HEADER].first
     end
 
     def csv(opts = {})
-      CSV.new(data, CSV_OPTS.merge(opts))
+      CSVReader.new(tsv, opts)
     end
 
     def success?
       result == SUCCESS
     end
 
-    private
-
     def report
-      @report ||= Client.get_bit_integrity_report(space_id)
+      @report ||= fetch_report
+    end
+
+    def report_loaded?
+      !@report.nil?
     end
 
     def properties
-      @properties ||= if @report
-                        report.headers
-                      else
-                        response = Client.get_bit_integrity_report_properties(space_id)
-                        response.headers
-                      end
+      @properties ||= fetch_properties
+    end
+
+    private
+
+    def fetch_report
+      reset_properties
+      Client.get_bit_integrity_report(space_id, **query)
+    end
+
+    def reset_properties
+      @properties = nil
+    end
+
+    def fetch_properties
+      if report_loaded?
+        report.headers
+      else
+        response = Client.get_bit_integrity_report_properties(space_id, **query)
+        response.headers
+      end
+    end
+
+    def query
+      { storeID: store_id }
     end
 
   end

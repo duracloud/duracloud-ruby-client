@@ -1,13 +1,11 @@
 require "date"
 require "nokogiri"
-require "forwardable"
 
 module Duracloud
   #
   # A "space" within a DuraCloud account.
   #
   class Space
-    extend Forwardable
     include Persistence
     include HasProperties
 
@@ -15,50 +13,112 @@ module Duracloud
     #   This limit is imposed by Duracloud.
     MAX_RESULTS = 1000
 
-    # List all spaces
-    # @param store_id [String] the store ID (optional)
-    # @return [Array<Duracloud::Space>] the list of spaces
-    # @raise [Duracloud::Error] the store was not found
-    def self.all(store_id = nil)
-      response = Client.get_spaces(storeID: store_id)
-      doc = Nokogiri::XML(response.body)
-      doc.css('space').map { |s| new(s['id'], store_id) }
-    end
-
-    # Create a new space
-    # @see .new for arguments
-    # @return [Duracloud::Space] the space
-    # @raise [Duracloud::BadRequestError] the space ID is invalid.
-    def self.create(*args)
-      new(*args) do |space|
-        yield space if block_given?
-        space.save
+    class << self
+      # List all spaces
+      # @param store_id [String] the store ID (optional)
+      # @return [Array<Duracloud::Space>] the list of spaces
+      # @raise [Duracloud::Error] the store was not found
+      def all(store_id = nil)
+        ids(store_id).map { |id| new(id, store_id) }
       end
-    end
 
-    # Does the space exist?
-    # @see .new for arguments
-    # @return [Boolean] whether the space exists.
-    def self.exist?(*args)
-      find(*args) && true
-    rescue NotFoundError
-      false
-    end
+      # List all space IDs
+      # @param store_id [String] the store ID (optional)
+      # @return [Array<String>] the list of space IDs
+      # @raise [Duracloud::Error] the store was not found
+      def ids(store_id = nil)
+        response = Client.get_spaces(storeID: store_id)
+        doc = Nokogiri::XML(response.body)
+        doc.css('space').map { |s| s['id'] }
+      end
 
-    # Find a space
-    # @see .new for arguments
-    # @return [Duracloud::Space] the space
-    # @raise [Duracloud::NotFoundError] the space or store was not found
-    def self.find(*args)
-      new(*args) do |space|
-        space.load_properties
+      # Enumerates the content IDs in the space.
+      # @param space_id [String] the space ID
+      # @param store_id [String] the store ID (optional)
+      # @param prefix [String] the content ID prefix for filtering (optional)
+      # @param start_after [String] the content ID to be used as a "marker".
+      #   Listing starts after this ID. (optional)
+      # @return [Enumerator] an enumerator.
+      # @raise [Duracloud::NotFoundError] the space or store does not exist.
+      def content_ids(space_id, store_id: nil, prefix: nil, start_after: nil)
+        space = find(space_id, store_id)
+        space.content_ids(prefix: prefix, start_after: start_after)
+      end
+
+      # Enumerates the content items in the space.
+      # @param space_id [String] the space ID
+      # @param store_id [String] the store ID (optional)
+      # @param prefix [String] the content ID prefix for filtering (optional)
+      # @param start_after [String] the content ID to be used as a "marker".
+      #   Listing starts after this ID. (optional)
+      # @return [Enumerator] an enumerator.
+      # @raise [Duracloud::NotFoundError] the space does not exist in Duracloud.
+      def items(space_id, store_id: nil, prefix: nil, start_after: nil)
+        space = find(space_id, store_id)
+        space.items(prefix: prefix, start_after: start_after)
+      end
+
+      # Create a new space
+      # @see .new for arguments
+      # @return [Duracloud::Space] the space
+      # @raise [Duracloud::BadRequestError] the space ID is invalid.
+      def create(*args)
+        new(*args) do |space|
+          yield space if block_given?
+          space.save
+        end
+      end
+
+      # Does the space exist?
+      # @see .new for arguments
+      # @return [Boolean] whether the space exists.
+      def exist?(*args)
+        find(*args) && true
+      rescue NotFoundError
+        false
+      end
+
+      # Find a space
+      # @see .new for arguments
+      # @return [Duracloud::Space] the space
+      # @raise [Duracloud::NotFoundError] the space or store was not found
+      def find(*args)
+        new(*args) do |space|
+          space.load_properties
+        end
+      end
+
+      # Return the number of items in the space
+      # @return [Fixnum] the number of items
+      # @raise [Duracloud::NotFoundError] the space or store was not found
+      def count(*args)
+        find(*args).count
+      end
+
+      # Return the audit log for the space
+      # @return [Duracloud::AuditLog] the audit log
+      # @raise [Duracloud::NotFoundError] the space or store was not found
+      def audit_log(*args)
+        find(*args).audit_log
+      end
+
+      # Return the bit integrity report for the space
+      # @return [Duracloud::BitIntegrityReport] the report
+      # @raise [Duracloud::NotFoundError] the space or store was not found
+      def bit_integrity_report(*args)
+        find(*args).bit_integrity_report
+      end
+
+      # Return the manifest for the space
+      # @return [Duracloud::Manifest] the manifest
+      # @raise [Duracloud::NotFoundError] the space or store was not found
+      def manifest(*args)
+        find(*args).manifest
       end
     end
 
     attr_reader :space_id, :store_id
     alias_method :id, :space_id
-
-    delegate [:count, :created] => :properties
 
     after_save :reset_acls
     before_delete :reset_acls
@@ -80,22 +140,47 @@ module Duracloud
       space_id
     end
 
+    # Return the number of items in the space
+    # @return [Fixnum] the number of items
+    def count
+      properties.space_count.to_i
+    end
+
+    # Return the creation date of the space, if persisted, or nil.
+    # @return [DateTime] the date
+    def created
+      if space_created = properties.space_created
+        DateTime.parse(space_created)
+      end
+    end
+
+    # Find a content item in the space
+    # @return [Duracloud::Content] the content item.
+    # @raise [Duracloud::NotFoundError] if the content item does not exist.
     def find_content(content_id)
       Content.find(space_id, content_id, store_id)
     end
 
+    # Return the audit log for the space
+    # @return [Duracloud::AuditLog] the audit log
     def audit_log
       AuditLog.new(space_id, store_id)
     end
 
+    # Return the bit integrity report for the space
+    # @return [Duracloud::BitIntegrityReport] the report
     def bit_integrity_report
       BitIntergrityReport.new(space_id, store_id)
     end
 
+    # Return the manifest for the space
+    # @return [Duracloud::Manifest] the manifest
     def manifest
       Manifest.new(space_id, store_id)
     end
 
+    # Return the ACLs for the space
+    # @return [Duracloud::SpaceAcls] the ACLs
     def acls
       @acls ||= SpaceAcls.new(self)
     end
@@ -126,7 +211,7 @@ module Duracloud
     end
 
     # Enumerates the content items in the space.
-    # @see #each
+    # @see #content_ids
     # @return [Enumerator] an enumerator.
     # @raise [Duracloud::NotFoundError] the space does not exist in Duracloud.
     def items(*args)

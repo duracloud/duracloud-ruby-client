@@ -7,7 +7,8 @@ module Duracloud
       col_sep: '\t',
       headers: :first_row,
       write_headers: true,
-      return_headers: true,
+      return_headers: false,
+      header_converters: [ ->(h){ h.downcase.gsub(/-/, "_") } ]
     }
 
     def self.call(data, opts = {})

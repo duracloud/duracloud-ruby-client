@@ -24,7 +24,7 @@ module Duracloud
     private
 
     def response
-      @response ||= Client.get_manifest(space_id, **query)
+      @response ||= Client.get_audit_log(space_id, **query)
     end
 
     def query

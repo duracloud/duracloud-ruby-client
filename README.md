@@ -192,6 +192,49 @@ D, [2016-04-29T18:29:03.935451 #32379] DEBUG -- : Duracloud::Client HEAD https:/
  => false
 ```
 
+### Reports
+
+The audit logs, bit integrity reports and manifests are accessible in their original TSV format and in normalized CSV tables.
+
+#### Audit Log
+
+```
+>> space = Duracloud::Space.find("rest-api-testing")
+>> audit_log = space.audit_log
+ => #<Duracloud::AuditLog:0x007fd44c077f38 @space_id="rest-api-testing", @store_id=nil, @response=nil>
+
+>> audit_log.csv
+D, [2016-05-19T13:36:49.107520 #28754] DEBUG -- : Duracloud::Client GET https://duke.duracloud.org/durastore/audit/rest-api-testing 200 OK
+ => #<CSV::Table mode:col_or_row row_count:168>
+```
+
+#### Manifest
+
+```
+>> space = Duracloud::Space.find("rest-api-testing")
+>> manifest = space.manifest
+ => #<Duracloud::Manifest:0x007fd44d3c7048 @space_id="rest-api-testing", @store_id=nil, @tsv_response=nil, @bagit_response=nil>
+
+>> manifest.csv
+D, [2016-05-19T13:37:39.831013 #28754] DEBUG -- : Duracloud::Client GET https://duke.duracloud.org/durastore/manifest/rest-api-testing 200 OK
+ => #<CSV::Table mode:col_or_row row_count:10>
+
+>> manifest.csv.headers
+ => ["space_id", "content_id", "md5"]
+```
+
+#### Bit Integrity Report
+
+```
+>> space = Duracloud::Space.find("rest-api-testing")
+>> bit_integrity_report = space.bit_integrity_report
+ => #<Duracloud::BitIntegrityReport:0x007f88e39a2950 @space_id="rest-api-testing", @store_id=nil, @report=nil, @properties=nil>
+
+>> bit_integrity_report.csv
+D, [2016-05-19T15:39:33.538448 #29974] DEBUG -- : Duracloud::Client GET https://duke.duracloud.org/durastore/bit-integrity/rest-api-testing 200 OK
+ => #<CSV::Table mode:col_or_row row_count:8> 
+```
+
 ## Versioning
 
 We endeavor to follow semantic versioning.  In particular, versions < 1.0 may introduce backward-incompatible changes without notice.  Use at your own risk.  Version 1.0 signals a stable API.

@@ -170,7 +170,7 @@ module Duracloud
     # Return the bit integrity report for the space
     # @return [Duracloud::BitIntegrityReport] the report
     def bit_integrity_report
-      BitIntergrityReport.new(space_id, store_id)
+      BitIntegrityReport.new(space_id, store_id)
     end
 
     # Return the manifest for the space

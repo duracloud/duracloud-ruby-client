@@ -109,11 +109,13 @@ module Duracloud
 
     describe "#properties" do
       before {
-        stub_request(:head, url)
-          .to_return(status: 200, headers: {'x-dura-meta-creator'=>'testuser'})
+        allow(Client).to receive(:get_content_properties)
+                          .with("foo", "bar", hash_including(storeID: nil)) {
+          double(headers: {'x-dura-meta-creator'=>'testuser'},
+                 content_type: 'text/plain')
+        }
       }
       specify {
-        pending "A problem with Webmock / HTTPClient?"
         content = Content.find("foo", "bar")
         expect(content.properties.x_dura_meta_creator).to eq('testuser')
       }

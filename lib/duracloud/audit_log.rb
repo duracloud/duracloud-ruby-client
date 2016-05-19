@@ -1,5 +1,6 @@
 module Duracloud
   class AuditLog
+    include TSV
 
     attr_reader :space_id, :store_id
 
@@ -7,10 +8,6 @@ module Duracloud
       @space_id = space_id
       @store_id = store_id
       @response = nil
-    end
-
-    def csv(opts = {})
-      CSVReader.call(tsv, opts)
     end
 
     def tsv

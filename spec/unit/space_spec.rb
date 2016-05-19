@@ -101,40 +101,70 @@ EOS
       }
       let(:url) { "https://example.com/durastore/foo" }
       before {
-        stub_request(:head, url)
-          .to_return(headers: {
-                       'x-dura-meta-space-count'=>'3',
-                       'x-dura-meta-space-created'=>'2016-04-05T17:59:11'
-                     })
-        stub_request(:get, url).to_return(body: body)
+        stub_request(:head, "#{url}/foo1")
+        stub_request(:head, "#{url}/foo2")
+        stub_request(:head, "#{url}/foo3")
+        allow(Client).to receive(:get_space)
+                          .with("foo", hash_including(storeID: nil)) {
+          double(body: body,
+                 headers: {
+                   'x-dura-meta-space-count'=>'3',
+                   'x-dura-meta-space-created'=>'2016-04-05T17:59:11'
+                 })
+        }
+        allow(Client).to receive(:get_space_properties)
+                          .with("foo", hash_including(storeID: nil)) {
+          double(body: "",
+                 headers: {
+                   'x-dura-meta-space-count'=>'3',
+                   'x-dura-meta-space-created'=>'2016-04-05T17:59:11'
+                 })
+        }
       }
-      describe ".content_ids", pending: "Correcting the stub request" do
-        subject { Space.content_ids("foo") }
-        its(:to_a) { is_expected.to eq(["foo1", "foo2", "foo3"]) }
-      end
-      describe "#content_ids" do
-        subject { Space.find("foo") }
+      describe "class methods" do
         specify {
-          pending "Correcting the stub request"
-          expect(subject.content_ids.to_a).to eq(["foo1", "foo2", "foo3"])
+          expect(Space.content_ids("foo").to_a).to eq(["foo1", "foo2", "foo3"])
+        }
+        specify {
+          expect(Space.items("foo").map(&:id)).to eq(["foo1", "foo2", "foo3"])
+        }
+        specify {
+          expect(Space.count("foo")).to eq(3)
         }
       end
-
-      describe ".items"
-      describe "#items"
-
-      describe ".count"
-      describe "#count"
+      describe "instance methods" do
+        subject { Space.find("foo") }
+        specify {
+          expect(subject.content_ids.to_a).to eq(["foo1", "foo2", "foo3"])
+        }
+        specify {
+          expect(subject.items.map(&:id)).to eq(["foo1", "foo2", "foo3"])
+        }
+        its(:count) { is_expected.to eq(3) }
+      end
     end
 
-    describe ".audit_log"
-    describe "#audit_log"
-
-    describe ".bit_integrity_report"
-    describe "#bit_integrity_report"
-
-    describe ".manifest"
-    describe "#manifest"
-
+    describe "reports" do
+      describe "class methods" do
+        before {
+          stub_request(:head, "https://example.com/durastore/foo")
+        }
+        specify {
+          expect(Space.audit_log("foo")).to be_a(AuditLog)
+        }
+        specify {
+          expect(Space.bit_integrity_report("foo")).to be_a(BitIntegrityReport)
+        }
+        specify {
+          expect(Space.manifest("foo")).to be_a(Manifest)
+        }
+      end
+      describe "instance methods" do
+        subject { described_class.new("foo") }
+        its(:audit_log) { is_expected.to be_a(AuditLog) }
+        its(:bit_integrity_report) { is_expected.to be_a(BitIntegrityReport) }
+        its(:manifest) { is_expected.to be_a(Manifest) }
+      end
+    end
   end
 end

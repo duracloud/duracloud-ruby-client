@@ -9,7 +9,6 @@ module Duracloud
   autoload :Connection, "duracloud/connection"
   autoload :Content, "duracloud/content"
   autoload :ContentProperties, "duracloud/content_properties"
-  autoload :CSVReader, "duracloud/csv_reader"
   autoload :DurastoreRequest, "duracloud/durastore_request"
   autoload :ErrorHandler, "duracloud/error_handler"
   autoload :HasProperties, "duracloud/has_properties"
@@ -23,4 +22,5 @@ module Duracloud
   autoload :SpaceAcls, "duracloud/space_acls"
   autoload :SpaceProperties, "duracloud/space_properties"
   autoload :Store, "duracloud/store"
+  autoload :TSV, "duracloud/tsv"
 end

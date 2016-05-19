@@ -2,6 +2,7 @@ require "date"
 
 module Duracloud
   class BitIntegrityReport
+    include TSV
 
     SUCCESS = "SUCCESS".freeze
     FAILURE = "FAILURE".freeze
@@ -27,10 +28,6 @@ module Duracloud
 
     def result
       properties[RESULT_HEADER].first
-    end
-
-    def csv(opts = {})
-      CSVReader.new(tsv, opts)
     end
 
     def success?

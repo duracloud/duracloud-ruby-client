@@ -9,6 +9,8 @@ module Duracloud
     include Persistence
     include HasProperties
 
+    after_save :reset_acls
+
     # Max size of content item list for one request.
     #   This limit is imposed by Duracloud.
     MAX_RESULTS = 1000
@@ -230,6 +232,7 @@ module Duracloud
 
     def create
       Client.create_space(id, **query)
+      update unless acls.empty?
     end
 
     def update
@@ -250,11 +253,7 @@ module Duracloud
     end
 
     def do_save
-      if persisted?
-        update
-      else
-        create
-      end
+      persisted? ? update : create
     end
 
     def query

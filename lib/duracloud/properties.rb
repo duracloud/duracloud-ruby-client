@@ -89,6 +89,14 @@ module Duracloud
       self.class.property?(prop)
     end
 
+    # Filter the hash of properties, selecting only the properties valid
+    #   for this particular usage (subclass).
+    # @param hsh [Hash] the unfiltered properties
+    # @return [Hash] the filtered properties
+    def filter(hsh)
+      self.class.filter(hsh)
+    end
+
     # @api private
     def regular_writer(key, value)
       if property?(key)

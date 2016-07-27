@@ -87,7 +87,26 @@ EOS
 
     describe "#delete"
 
-    describe "#acls"
+    describe "#acls" do
+      let(:url) { "https://example.com/durastore/foo" }
+      subject { Space.find("foo") }
+      before {
+        stub_request(:head, url)
+        allow(Client).to receive(:get_space_acls)
+                          .with("foo", hash_including(storeID: nil)) {
+          double(body: "",
+                 headers: {
+                   'x-dura-meta-acl-bob'=>'READ',
+                   'x-dura-meta-acl-group-curators'=>'WRITE'
+                 })
+        }
+      }
+      specify {
+        expect(subject.acls.to_h)
+          .to eq({'x-dura-meta-acl-bob'=>'READ',
+                  'x-dura-meta-acl-group-curators'=>'WRITE'})
+      }
+    end
 
     describe "contents" do
       let(:body) { <<-EOS

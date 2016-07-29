@@ -1,7 +1,7 @@
 module Duracloud
   RSpec.describe AuditLog do
 
-    let(:tsv) { File.read(File.join(File.expand_path('../../fixtures/audit_log.tsv', __FILE__))) }
+    let(:tsv) { File.read(File.expand_path('../../fixtures/audit_log.tsv', __FILE__)) }
 
     before {
       allow(subject).to receive(:tsv) { tsv }

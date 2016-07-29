@@ -88,6 +88,18 @@ module Duracloud
           end
         end
       end
+      describe "when the body is a file" do
+        let(:path) { File.expand_path('../../fixtures/lorem_ipsum.txt', __FILE__) }
+        let(:file) { File.new(path, "rb") }
+        before {
+          stub_request(:put, url).with(body: File.read(path))
+            .to_return(status: 201)
+        }
+        it "stores the file content" do
+          subject.body = file
+          subject.save
+        end
+      end
     end
 
     describe "#delete" do

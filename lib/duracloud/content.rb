@@ -10,6 +10,8 @@ module Duracloud
     include Persistence
     include HasProperties
 
+    CHUNK_SIZE = 1024 * 16
+
     after_save :changes_applied
 
     # Does the content exist in DuraCloud?
@@ -64,7 +66,7 @@ module Duracloud
     # @raise [Duracloud::NotFoundError] the content does not exist in DuraCloud.
     def load_body
       response = Client.get_content(*args, **query)
-      set_body(response) # don't use setter b/c marks as dirty
+      @body = response.body # don't use setter b/c marks as dirty
       persisted!
     end
 
@@ -76,7 +78,7 @@ module Duracloud
     end
 
     def body=(str_or_io)
-      set_body(str_or_io)
+      @body = str_or_io
       body_will_change!
     end
 
@@ -104,8 +106,8 @@ module Duracloud
 
     private
 
-    def set_body(str_or_io)
-      @body = StringIO.new(read_string_or_io(str_or_io), "r")
+    def io_like?
+      body.respond_to?(:read) && body.respond_to?(:rewind)
     end
 
     def set_properties
@@ -126,10 +128,17 @@ module Duracloud
     end
 
     def md5
-      body.rewind
-      Digest::MD5.hexdigest(body.read)
-    ensure
-      body.rewind
+      digest = Digest::MD5.new
+      if io_like?
+        body.rewind
+        while chunk = body.read(CHUNK_SIZE) do
+          digest << chunk
+        end
+        body.rewind
+      else
+        digest << body
+      end
+      digest.hexdigest
     end
 
     def properties_class
@@ -151,25 +160,6 @@ module Duracloud
         set_properties
       else
         raise Error, "Cannot store empty content."
-      end
-    end
-
-    def read_string_or_io(str_or_io)
-      if str_or_io.respond_to?(:read)
-        read_io_like(str_or_io)
-      elsif str_or_io.respond_to?(:to_str)
-        str_or_io.to_str
-      else
-        raise ArgumentError, "IO-like or String-like argument required."
-      end
-    end
-
-    def read_io_like(io_like)
-      begin
-        io_like.rewind if io_like.respond_to?(:rewind)
-        io_like.read
-      ensure
-        io_like.rewind if io_like.respond_to?(:rewind)
       end
     end
 

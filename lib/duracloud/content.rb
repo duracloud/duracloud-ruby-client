@@ -1,4 +1,3 @@
-require "stringio"
 require "active_model"
 
 module Duracloud

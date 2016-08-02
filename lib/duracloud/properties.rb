@@ -25,7 +25,7 @@ module Duracloud
     INTERNAL = /\A#{PREFIX}content-(mimetype|size|checksum|modified)\z/
 
     # Properties set by the DuraCloud SyncTool
-    SYNCTOOL = /\A#{PREFIX}(creator|(content-file-(created|modified|last-accessed-path)))\z/
+    SYNCTOOL = /\A#{PREFIX}(creator|(content-file-(created|modified|last-accessed|path)))\z/
 
     # Is the property valid for this class of properties?
     # @note Subclasses should override this method rather than the `#property?'

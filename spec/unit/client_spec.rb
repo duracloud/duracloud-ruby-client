@@ -111,6 +111,11 @@ module Duracloud
         subject.get_content("foo", "bar")
         expect(stub).to have_been_requested
       }
+      it "escapes percent signs in the content id" do
+        stub = stub_request(:get, "https://example.com/durastore/foo/z/z/bar%252Fbaz")
+        subject.get_content("foo", "z/z/bar%2Fbaz")
+        expect(stub).to have_been_requested
+      end
       specify {
         stub = stub_request(:get, "https://example.com/durastore/foo/bar")
                .with(query: {storeID: 1})
@@ -125,6 +130,11 @@ module Duracloud
         subject.get_content_properties("foo", "bar")
         expect(stub).to have_been_requested
       }
+      it "escapes percent signs in the content id" do
+        stub = stub_request(:head, "https://example.com/durastore/foo/z/z/bar%252Fbaz")
+        subject.get_content_properties("foo", "z/z/bar%2Fbaz")
+        expect(stub).to have_been_requested
+      end
       specify {
         stub = stub_request(:head, "https://example.com/durastore/foo/bar")
                .with(query: {storeID: 1})
@@ -141,6 +151,13 @@ module Duracloud
                                        headers: {'x-dura-meta-owner'=>'testuser'})
         expect(stub).to have_been_requested
       }
+      it "escapes percent signs in the content id" do
+        stub = stub_request(:post, "https://example.com/durastore/foo/z/z/bar%252Fbaz")
+               .with(headers: {'x-dura-meta-owner'=>'testuser'})
+        subject.set_content_properties("foo", "z/z/bar%2Fbaz",
+                                       headers: {'x-dura-meta-owner'=>'testuser'})
+        expect(stub).to have_been_requested
+      end
       specify {
         stub = stub_request(:post, "https://example.com/durastore/foo/bar")
                .with(headers: {'x-dura-meta-owner'=>'testuser'},
@@ -168,6 +185,21 @@ module Duracloud
                               })
         expect(stub).to have_been_requested
       }
+      it "escapes percent signs in the content id" do
+        stub = stub_request(:put, "https://example.com/durastore/foo/z/z/bar%252Fbaz")
+               .with(body: "File content",
+                     headers: {
+                       'Content-Type'=>'text/plain',
+                       'Content-MD5'=>'8bb2564936980e92ceec8a5759ec34a8'
+                     })
+        subject.store_content("foo", "z/z/bar%2Fbaz",
+                              body: "File content",
+                              headers: {
+                                'Content-Type'=>'text/plain',
+                                'Content-MD5'=>'8bb2564936980e92ceec8a5759ec34a8'
+                              })
+        expect(stub).to have_been_requested
+      end
       specify {
         stub = stub_request(:put, "https://example.com/durastore/foo/bar")
                .with(body: "File content",
@@ -193,6 +225,11 @@ module Duracloud
         subject.delete_content("foo", "bar")
         expect(stub).to have_been_requested
       }
+      it "escapes percent signs in the content id" do
+        stub = stub_request(:delete, "https://example.com/durastore/foo/z/z/bar%252Fbaz")
+        subject.delete_content("foo", "z/z/bar%2Fbaz")
+        expect(stub).to have_been_requested
+      end
       specify {
         stub = stub_request(:delete, "https://example.com/durastore/foo/bar")
                .with(query: {storeID: 1})

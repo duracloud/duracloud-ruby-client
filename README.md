@@ -6,7 +6,7 @@ Ruby client for communicating with DuraCloud
 Add this line to your application's Gemfile:
 
 ```ruby
-gem 'duracloud'
+gem 'duracloud-client'
 ```
 
 And then execute:
@@ -15,7 +15,7 @@ And then execute:
 
 Or install it yourself as:
 
-    $ gem install duracloud
+    $ gem install duracloud-client
 
 ## Usage
 

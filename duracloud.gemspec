@@ -22,7 +22,7 @@ Gem::Specification.new do |spec|
 
   spec.add_dependency "hashie", "~> 3.4"
   spec.add_dependency "httpclient", "~> 2.7"
-  spec.add_dependency "activemodel", "~> 4.1"
+  spec.add_dependency "activemodel", ">= 4.2", "< 6"
   spec.add_dependency "nokogiri", "~> 1.6"
 
   spec.add_development_dependency "webmock", "~> 2.0"

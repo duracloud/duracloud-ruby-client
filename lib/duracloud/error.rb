@@ -4,4 +4,5 @@ module Duracloud
   class NotFoundError < Error; end
   class BadRequestError < Error; end
   class ConflictError < Error; end
+  class MessageDigestError < Error; end
 end

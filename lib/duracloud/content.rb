@@ -5,6 +5,7 @@ module Duracloud
   # A piece of content in DuraCloud
   #
   class Content
+    include ActiveModel::Model
     include ActiveModel::Dirty
     include Persistence
     include HasProperties
@@ -23,28 +24,20 @@ module Duracloud
     end
 
     # Find content in DuraCloud.
-    # @see .new for arguments
     # @return [Duraclound::Content] the content
     # @raise [Duracloud::NotFoundError] the space, content, or store does not exist.
     def self.find(*args)
       new(*args) { |content| content.load_properties }
     end
 
-    attr_reader :space_id, :content_id, :store_id
+    attr_accessor :space_id, :content_id, :store_id
     alias_method :id, :content_id
+    validates_presence_of :space_id, :content_id
 
-    define_attribute_methods :content_type, :body
+    define_attribute_methods :content_type, :body, :md5
 
-    # @param space_id [String] The space ID (required)
-    # @param content_id [String] The content ID (required)
-    # @param store_id [String] the store ID (optional)
-    # @example
-    #   new("myspace", "mycontent.txt")
-    def initialize(space_id, content_id, store_id = nil)
-      @content_id = content_id
-      @space_id = space_id
-      @store_id = store_id
-      @body, @content_type = nil, nil
+    def initialize(params={})
+      super
       yield self if block_given?
     end
 
@@ -65,13 +58,15 @@ module Duracloud
     # @raise [Duracloud::NotFoundError] the content does not exist in DuraCloud.
     def load_body
       response = Client.get_content(*args, **query)
+      set_md5!(response)
       @body = response.body # don't use setter b/c marks as dirty
       persisted!
     end
 
     def load_properties
       super do |response|
-        # don't mark content_type as changed
+        # don't mark content_type or md5 as changed
+        set_md5!(response)
         @content_type = response.content_type
       end
     end
@@ -103,7 +98,27 @@ module Duracloud
       @content_type
     end
 
+    def md5=(val)
+      md5_will_change! unless val == @md5
+      @md5 = val
+    end
+
+    def md5
+      @md5
+    end
+
     private
+
+    def set_md5!(response)
+      if md5
+        if md5 != response.md5
+          raise MessageDigestError,
+                "Expected MD5 digest (#{md5}) does not match response header: #{response.md5}"
+        end
+      else
+        @md5 = response.md5
+      end
+    end
 
     def io_like?
       body.respond_to?(:read) && body.respond_to?(:rewind)
@@ -118,7 +133,7 @@ module Duracloud
 
     def store
       headers = {
-        "Content-MD5"  => md5,
+        "Content-MD5"  => md5 || calculate_md5,
         "Content-Type" => content_type || "application/octet-stream"
       }
       headers.merge!(properties)
@@ -126,7 +141,7 @@ module Duracloud
       Client.store_content(*args, **options)
     end
 
-    def md5
+    def calculate_md5
       digest = Digest::MD5.new
       if io_like?
         body.rewind

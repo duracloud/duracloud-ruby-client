@@ -160,7 +160,7 @@ module Duracloud
     # @return [Duracloud::Content] the content item.
     # @raise [Duracloud::NotFoundError] if the content item does not exist.
     def find_content(content_id)
-      Content.find(space_id, content_id, store_id)
+      Content.find(space_id: space_id, content_id: content_id, store_id: store_id)
     end
 
     # Return the audit log for the space

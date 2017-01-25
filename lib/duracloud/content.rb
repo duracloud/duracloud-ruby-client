@@ -15,10 +15,11 @@ module Duracloud
     after_save :changes_applied
 
     # Does the content exist in DuraCloud?
-    # @see .new for arguments
     # @return [Boolean] whether the content exists
-    def self.exist?(*args)
-      find(*args) && true
+    # @raise [Duracloud::MessageDigestError] the provided digest in the :md5 attribute
+    #   does not match the stored value
+    def self.exist?(params={})
+      find(params) && true
     rescue NotFoundError
       false
     end
@@ -26,8 +27,12 @@ module Duracloud
     # Find content in DuraCloud.
     # @return [Duraclound::Content] the content
     # @raise [Duracloud::NotFoundError] the space, content, or store does not exist.
-    def self.find(*args)
-      new(*args) { |content| content.load_properties }
+    # @raise [Duracloud::MessageDigestError] the provided digest in the :md5 attribute
+    #   does not match the stored value
+    def self.find(params={})
+      new(params).tap do |content|
+        content.load_properties
+      end
     end
 
     attr_accessor :space_id, :content_id, :store_id
@@ -35,11 +40,6 @@ module Duracloud
     validates_presence_of :space_id, :content_id
 
     define_attribute_methods :content_type, :body, :md5
-
-    def initialize(params={})
-      super
-      yield self if block_given?
-    end
 
     # Return the space associated with this content.
     # @return [Duracloud::Space] the space.

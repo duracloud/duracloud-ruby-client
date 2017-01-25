@@ -125,7 +125,7 @@ foo8
 #### Create a new content item and store it in DuraCloud
 
 ```
->> new_content = Duracloud::Content.new("rest-api-testing", "ark:/99999/fk4zzzz")
+>> new_content = Duracloud::Content.new(space_id: "rest-api-testing", content_id: "ark:/99999/fk4zzzz")
  => #<Duracloud::Content space_id="rest-api-testing", content_id="ark:/99999/fk4zzzz", store_id=(default)>
  
 >> new_content.body = "test"
@@ -138,16 +138,20 @@ foo8
  => #<Duracloud::Content space_id="rest-api-testing", content_id="ark:/99999/fk4zzzz", store_id=(default)>
 ```
 
-When storing content a `Duracloud::NotFoundError` is raised if the space does not exist. A `Duracloud::BadRequestError` is raised if the content ID is invalid.
+When storing content a `Duracloud::NotFoundError` is raised if the space does not exist.
+A `Duracloud::BadRequestError` is raised if the content ID is invalid.
+A `Duracloud::ConflictError` is raised if the provided MD5 digest does not match the stored digest.
 
 #### Retrieve an existing content item from DuraCloud
 
 ```
->> Duracloud::Content.find("spaceID", "contentID")
+>> Duracloud::Content.find(space_id: "spaceID", content_id: "contentID")
  => #<Duracloud::Content space_id="spaceID", content_id="contentID", store_id=(default)>
 ```
 
 If the space or content ID does not exist, a `Duracloud::NotFoundError` is raised.
+If an MD5 digest is provided (:md5 attribute), a `Duracloud::MessageDigestError` is
+raised if the content ID exists and the stored digest does not match.
 
 #### Update the properties for a content item
 

@@ -7,31 +7,64 @@ module Duracloud
       describe "when it exists" do
         before { stub_request(:head, url) }
         specify {
-          expect(Content.find("foo", "bar")).to be_a(Content)
+          expect(Content.find(space_id: "foo", content_id: "bar")).to be_a(Content)
         }
       end
       describe "when it does not exist" do
         before { stub_request(:head, url).to_return(status: 404) }
         specify {
-          expect { Content.find("foo", "bar") }.to raise_error(NotFoundError)
+          expect { Content.find(space_id: "foo", content_id: "bar") }.to raise_error(NotFoundError)
         }
+      end
+      describe "when providing an MD5" do
+        before do
+          stub_request(:head, url).to_return(headers: {'Content-MD5'=>'foo'})
+        end
+        describe "that is correct" do
+          specify {
+            expect(Content.find(space_id: "foo", content_id: "bar", md5: "foo")).to be_a(Content)
+          }
+        end
+        describe "that is incorrect" do
+          specify {
+            expect { Content.find(space_id: "foo", content_id: "bar", md5: "bar") }.to raise_error(MessageDigestError)
+          }
+        end
       end
     end
 
     describe ".exist?" do
-      subject { Content.exist?("foo", "bar") }
       describe "when it exists" do
         before { stub_request(:head, url) }
-        it { is_expected.to be true }
+        specify {
+          expect(Content.exist?(space_id: "foo", content_id: "bar")).to be true
+        }
       end
       describe "when it does not exist" do
         before { stub_request(:head, url).to_return(status: 404) }
-        it { is_expected.to be false }
+        specify {
+          expect(Content.exist?(space_id: "foo", content_id: "bar")).to be false
+        }
+      end
+      describe "when providing an MD5" do
+        before do
+          stub_request(:head, url).to_return(headers: {'Content-MD5'=>'foo'})
+        end
+        describe "that is correct" do
+          specify {
+            expect(Content.exist?(space_id: "foo", content_id: "bar", md5: "foo")).to be true
+          }
+        end
+        describe "that is incorrect" do
+          specify {
+            expect { Content.exist?(space_id: "foo", content_id: "bar", md5: "bar") }.to raise_error(MessageDigestError)
+          }
+        end
       end
     end
 
     describe "#save" do
-      subject { Content.new("foo", "bar") }
+      subject { Content.new(space_id: "foo", content_id: "bar") }
       describe "when not persisted" do
         describe "when empty" do
           it "raises an exception" do
@@ -51,7 +84,9 @@ module Duracloud
           end
           describe "and the space exists" do
             before {
-              stub_request(:put, url).with(body: "Some file content")
+              stub_request(:put, url)
+                .with(body: "Some file content",
+                      headers: {"Content-MD5"=>"92bbcf620ceb5f5bf38f08e9a1f31e7b"})
                 .to_return(status: 201)
             }
             it "stores the content" do
@@ -68,7 +103,9 @@ module Duracloud
         }
         describe "and the body has changed" do
           before {
-            stub_request(:put, url).with(body: "Some file content")
+            stub_request(:put, url)
+              .with(body: "Some file content",
+                    headers: {"Content-MD5"=>"92bbcf620ceb5f5bf38f08e9a1f31e7b"})
               .to_return(status: 201)
           }
           it "stores the content" do
@@ -91,10 +128,12 @@ module Duracloud
       describe "when the body is a file" do
         let(:path) { File.expand_path('../../fixtures/lorem_ipsum.txt', __FILE__) }
         let(:file) { File.new(path, "rb") }
-        before {
-          stub_request(:put, url).with(body: File.read(path))
+        before do
+          stub_request(:put, url)
+            .with(body: File.read(path),
+                  headers: {"Content-MD5"=>"039d7100bea9ef2efbe151db953726ce"})
             .to_return(status: 201)
-        }
+        end
         it "stores the file content" do
           subject.body = file
           subject.save
@@ -103,7 +142,7 @@ module Duracloud
     end
 
     describe "#delete" do
-      subject { Content.new("foo", "bar") }
+      subject { Content.new(space_id: "foo", content_id: "bar") }
       describe "when not found" do
         before { stub_request(:delete, url).to_return(status: 404) }
         it "raises an exception" do
@@ -124,11 +163,12 @@ module Duracloud
         allow(Client).to receive(:get_content_properties)
                           .with("foo", "bar", hash_including(storeID: nil)) {
           double(headers: {'x-dura-meta-creator'=>'testuser'},
-                 content_type: 'text/plain')
+                 content_type: 'text/plain',
+                 md5: '08a008a01d498c404b0c30852b39d3b8')
         }
       }
       specify {
-        content = Content.find("foo", "bar")
+        content = Content.find(space_id: "foo", content_id: "bar")
         expect(content.properties.x_dura_meta_creator).to eq('testuser')
       }
     end

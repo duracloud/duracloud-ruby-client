@@ -19,7 +19,7 @@ module Duracloud
     SPACE_ACLS = /\A#{PREFIX}acl-/
 
     # Copy Content headers
-    COPY_CONTENT = /\A#{PREFIX}copy-source(-store)\z/
+    COPY_CONTENT = /\A#{PREFIX}copy-source(-store)?\z/
 
     # DuraCloud internal content properties
     INTERNAL = /\A#{PREFIX}content-(mimetype|size|checksum|modified)\z/

@@ -173,12 +173,32 @@ module Duracloud
     end
 
     describe "#copy" do
+      let(:target) { "https://example.com/durastore/spam/eggs" }
       subject { Content.new(space_id: "foo", content_id: "bar") }
       specify {
-        stub = stub_request(:put, "https://example.com/durastore/spam/eggs")
-          .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
-        subject.copy(target_space_id: "spam", target_content_id: "eggs")
-        expect(stub).to have_been_requested
+        stub1 = stub_request(:put, target)
+                .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
+        stub2 = stub_request(:head, target)
+        copied = subject.copy(target_space_id: "spam", target_content_id: "eggs")
+        expect(copied).to be_a(Content)
+        expect(stub1).to have_been_requested
+        expect(stub2).to have_been_requested
+      }
+    end
+
+    describe "#move" do
+      let(:target) { "https://example.com/durastore/spam/eggs" }
+      subject { Content.new(space_id: "foo", content_id: "bar") }
+      specify {
+        stub1 = stub_request(:put, target)
+                .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
+        stub2 = stub_request(:head, target)
+        stub3 = stub_request(:delete, "https://example.com/durastore/foo/bar")
+        moved = subject.move(target_space_id: "spam", target_content_id: "eggs")
+        expect(moved).to be_a(Content)
+        expect(stub1).to have_been_requested
+        expect(stub2).to have_been_requested
+        expect(stub3).to have_been_requested
       }
     end
 

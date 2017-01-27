@@ -49,9 +49,8 @@ module Duracloud
       durastore_content(:put, space_id, content_id, **options)
     end
 
-    def copy_content(space_id, content_id, **options)
-      raise NotImplementedError,
-            "The API method 'Copy Content' has not yet been implemented."
+    def copy_content(target_space_id, target_content_id, **options)
+      durastore_content(:put, target_space_id, target_content_id, **options)
     end
 
     def delete_content(space_id, content_id, **options)
@@ -91,7 +90,7 @@ module Duracloud
     end
 
     def durastore_content(http_method, space_id, content_id, **options)
-      escaped_content_id = content_id.gsub(/%/, "%25")
+      escaped_content_id = content_id.gsub(/%/, "%25").gsub(/ /, "%20")
       url = [ space_id, escaped_content_id ].join("/")
       durastore(http_method, url, **options)
     end

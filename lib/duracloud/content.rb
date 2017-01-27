@@ -107,6 +107,13 @@ module Duracloud
       @md5
     end
 
+    def copy(target_space_id:, target_content_id:, target_store_id: nil)
+      copy_headers = {'x-dura-meta-copy-source'=>[space_id, content_id].join('/')}
+      copy_headers['x-dura-meta-copy-source-store'] = store_id if store_id
+      options = { storeID: target_store_id, headers: copy_headers }
+      Client.copy_content(target_space_id, target_content_id, **options)
+    end
+
     private
 
     def set_md5!(response)

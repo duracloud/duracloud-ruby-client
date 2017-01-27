@@ -19,7 +19,7 @@ module Duracloud
     end
 
     def tsv
-      report.body
+      super || report.body
     end
 
     def completion_date

@@ -12,7 +12,7 @@ module Duracloud
     end
 
     def tsv
-      tsv_response.body
+      super || tsv_response.body
     end
 
     def bagit

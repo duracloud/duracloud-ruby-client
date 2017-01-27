@@ -130,9 +130,9 @@ module Duracloud
         subject.get_content_properties("foo", "bar")
         expect(stub).to have_been_requested
       }
-      it "escapes percent signs in the content id" do
-        stub = stub_request(:head, "https://example.com/durastore/foo/z/z/bar%252Fbaz")
-        subject.get_content_properties("foo", "z/z/bar%2Fbaz")
+      it "escapes percent signs and spaces in the content id" do
+        stub = stub_request(:head, "https://example.com/durastore/foo/z/z/bar%252Fbaz%20spam%20eggs")
+        subject.get_content_properties("foo", "z/z/bar%2Fbaz spam eggs")
         expect(stub).to have_been_requested
       end
       specify {
@@ -240,8 +240,10 @@ module Duracloud
 
     describe "copy_content" do
       specify {
-        expect { subject.copy_content("foo", "bar", headers: {'x-dura-meta-copy-source'=>'space-id/content-id'}) }
-          .to raise_error(NotImplementedError)
+        stub = stub_request(:put, "https://example.com/durastore/spam/eggs")
+               .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
+        subject.copy_content("spam", "eggs", headers: {'x-dura-meta-copy-source'=>'foo/bar'})
+        expect(stub).to have_been_requested
       }
     end
 

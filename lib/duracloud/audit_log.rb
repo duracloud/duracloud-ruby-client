@@ -11,11 +11,7 @@ module Duracloud
     end
 
     def tsv
-      response.body
-    end
-
-    def to_s
-      tsv
+      super || response.body
     end
 
     private

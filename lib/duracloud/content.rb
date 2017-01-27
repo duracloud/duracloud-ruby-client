@@ -107,11 +107,22 @@ module Duracloud
       @md5
     end
 
+    # @return [Duracloud::Content] the copied content
+    #   The current instance still represents the original content.
     def copy(target_space_id:, target_content_id:, target_store_id: nil)
       copy_headers = {'x-dura-meta-copy-source'=>[space_id, content_id].join('/')}
       copy_headers['x-dura-meta-copy-source-store'] = store_id if store_id
       options = { storeID: target_store_id, headers: copy_headers }
       Client.copy_content(target_space_id, target_content_id, **options)
+      Content.find(space_id: target_space_id, content_id: target_content_id, store_id: target_store_id, md5: md5)
+    end
+
+    # @return [Duracloud::Content] the moved content
+    #   The current instance still represents the deleted content.
+    def move(**args)
+      copied = copy(**args)
+      delete
+      copied
     end
 
     private

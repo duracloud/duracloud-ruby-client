@@ -173,33 +173,87 @@ module Duracloud
     end
 
     describe "#copy" do
-      let(:target) { "https://example.com/durastore/spam/eggs" }
       subject { Content.new(space_id: "foo", content_id: "bar") }
+      let(:target) { "https://example.com/durastore/spam/eggs" }
+      before do
+        stub_request(:put, target)
+          .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
+        stub_request(:head, target).to_return(status: 404)
+      end
       specify {
+        copied = subject.copy(space_id: "spam", content_id: "eggs")
+        expect(copied).to be_a(Content)
+      }
+      it "defaults target space to current space" do
+        target = "https://example.com/durastore/foo/eggs"
         stub1 = stub_request(:put, target)
                 .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
-        stub2 = stub_request(:head, target)
-        copied = subject.copy(target_space_id: "spam", target_content_id: "eggs")
+        stub2 = stub_request(:head, target).to_return(status: 404)
+        copied = subject.copy(content_id: "eggs")
         expect(copied).to be_a(Content)
         expect(stub1).to have_been_requested
         expect(stub2).to have_been_requested
-      }
+      end
+      describe "when the target exists" do
+        before do
+          stub_request(:head, target).to_return(status: 200)
+        end
+        describe "and force argument is true" do
+          it "overwrites the target" do
+            expect { subject.copy(space_id: "spam", content_id: "eggs", force: true) }.not_to raise_error
+          end
+        end
+        describe "and force argument is false" do
+          it "raises an exception" do
+            expect { subject.copy(space_id: "spam", content_id: "eggs", force: false) }.to raise_error(Content::CopyError)
+          end
+        end
+      end
     end
 
     describe "#move" do
       let(:target) { "https://example.com/durastore/spam/eggs" }
       subject { Content.new(space_id: "foo", content_id: "bar") }
-      specify {
-        stub1 = stub_request(:put, target)
-                .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
-        stub2 = stub_request(:head, target)
-        stub3 = stub_request(:delete, "https://example.com/durastore/foo/bar")
-        moved = subject.move(target_space_id: "spam", target_content_id: "eggs")
-        expect(moved).to be_a(Content)
-        expect(stub1).to have_been_requested
-        expect(stub2).to have_been_requested
-        expect(stub3).to have_been_requested
-      }
+      describe "when copy succeeds" do
+        it "deletes the source" do
+          stub1 = stub_request(:put, target)
+                  .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
+          stub2 = stub_request(:head, target).to_return(status: 404)
+          stub3 = stub_request(:delete, "https://example.com/durastore/foo/bar")
+          moved = subject.move(space_id: "spam", content_id: "eggs")
+          expect(moved).to be_a(Content)
+          expect(stub1).to have_been_requested
+          expect(stub2).to have_been_requested
+          expect(stub3).to have_been_requested
+        end
+      end
+      describe "when copy fails" do
+        it "does not delete the source" do
+          allow(subject).to receive(:copy).with(space_id: "spam", content_id: "eggs").and_raise(Content::CopyError)
+          expect(subject).not_to receive(:delete)
+          expect { subject.move(space_id: "spam", content_id: "eggs") }.to raise_error(Content::CopyError)
+        end
+      end
+      describe "when target exists" do
+        before do
+          stub_request(:put, target)
+            .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
+          stub_request(:delete, "https://example.com/durastore/foo/bar")
+          stub_request(:head, target).to_return(status: 200)
+          allow(Content).to receive(:exist?).with(space_id: "spam", content_id: "eggs") { true }
+        end
+        describe "and force argument is true" do
+          it "overwrites the target" do
+            expect(subject).to receive(:copy).and_call_original
+            subject.move(space_id: "spam", content_id: "eggs", force: true)
+          end
+        end
+        describe "and force argument is false" do
+          it "raises an exception" do
+            expect { subject.move(space_id: "spam", content_id: "eggs", force: false) }.to raise_error(Content::CopyError)
+          end
+        end
+      end
     end
 
   end

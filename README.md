@@ -192,7 +192,7 @@ Also, `:space_id` and `:content_id` arguments are not required, but default to t
 D, [2017-01-27T17:16:45.846459 #93283] DEBUG -- : Duracloud::Client HEAD https://duke.duracloud.org/durastore/rest-api-testing/contentItem.txt 200 OK
  => #<Duracloud::Content space_id="rest-api-testing", content_id="contentItem.txt", store_id=(default)> 
 
->> copy_of_content = content.copy(space_id: 'rest-api-testing2')
+>> content.copy(space_id: 'rest-api-testing2')
 D, [2017-01-27T17:17:59.848741 #93283] DEBUG -- : Duracloud::Client PUT https://duke.duracloud.org/durastore/rest-api-testing2/contentItem.txt 201 Created
  => #<Duracloud::Content space_id="rest-api-testing2", content_id="contentItem.txt", store_id=(default)> 
 ```
@@ -210,7 +210,7 @@ This is a convenience operation -- copy and delete -- not directly supported by 
 D, [2017-01-27T17:19:41.926994 #93286] DEBUG -- : Duracloud::Client HEAD https://duke.duracloud.org/durastore/rest-api-testing/contentItem.txt 200 OK
  => #<Duracloud::Content space_id="rest-api-testing", content_id="contentItem.txt", store_id=(default)> 
 
->> moved_content = content.move(space_id: 'rest-api-testing2')
+>> content.move(space_id: 'rest-api-testing2')
 D, [2017-01-27T17:20:07.542468 #93286] DEBUG -- : Duracloud::Client PUT https://duke.duracloud.org/durastore/rest-api-testing2/contentItem.txt 201 Created
 D, [2017-01-27T17:20:08.442504 #93286] DEBUG -- : Duracloud::Client DELETE https://duke.duracloud.org/durastore/rest-api-testing/contentItem.txt 200 OK
  => #<Duracloud::Content space_id="rest-api-testing2", content_id="contentItem.txt", store_id=(default)> 

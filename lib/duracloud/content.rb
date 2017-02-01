@@ -10,7 +10,11 @@ module Duracloud
     include Persistence
     include HasProperties
 
+    class CopyError < Error; end
+
     CHUNK_SIZE = 1024 * 16
+    COPY_SOURCE_HEADER = "x-dura-meta-copy-source"
+    COPY_SOURCE_STORE_HEADER = "x-dura-meta-copy-source-store"
 
     after_save :changes_applied
 
@@ -26,13 +30,22 @@ module Duracloud
 
     # Find content in DuraCloud.
     # @return [Duraclound::Content] the content
-    # @raise [Duracloud::NotFoundError] the space, content, or store does not exist.
-    # @raise [Duracloud::MessageDigestError] the provided digest in the :md5 attribute
-    #   does not match the stored value
+    # @raise [Duracloud::NotFoundError] the space, content, or store (if given) does not exist.
+    # @raise [Duracloud::MessageDigestError] the provided digest in the :md5 attribute,
+    #   if given, does not match the stored value.
     def self.find(params={})
       new(params).tap do |content|
         content.load_properties
       end
+    end
+
+    # Create new content in DuraCloud.
+    # @return [Duraclound::Content] the content
+    # @raise [Duracloud::NotFoundError] the space or store (if given) does not exist.
+    # @raise [Duracloud::MessageDigestError] the provided digest in the :md5 attribute,
+    #   if given, does not match the stored value.
+    def self.create(params={})
+      new(params).save
     end
 
     attr_accessor :space_id, :content_id, :store_id
@@ -109,12 +122,17 @@ module Duracloud
 
     # @return [Duracloud::Content] the copied content
     #   The current instance still represents the original content.
-    def copy(target_space_id:, target_content_id:, target_store_id: nil)
-      copy_headers = {'x-dura-meta-copy-source'=>[space_id, content_id].join('/')}
-      copy_headers['x-dura-meta-copy-source-store'] = store_id if store_id
-      options = { storeID: target_store_id, headers: copy_headers }
-      Client.copy_content(target_space_id, target_content_id, **options)
-      Content.find(space_id: target_space_id, content_id: target_content_id, store_id: target_store_id, md5: md5)
+    def copy(**args)
+      dest = args.except(:force)
+      dest[:space_id] ||= space_id
+      dest[:content_id] ||= content_id
+      raise CopyError, "Destination is the same as the source." if dest == copy_source
+      if !args[:force] && Content.exist?(**dest)
+        raise CopyError, "Destination exists and :false option is false."
+      end
+      options = { storeID: dest[:store_id], headers: copy_headers }
+      Client.copy_content(dest[:space_id], dest[:content_id], **options)
+      Content.new(dest.merge(md5: md5))
     end
 
     # @return [Duracloud::Content] the moved content
@@ -126,6 +144,16 @@ module Duracloud
     end
 
     private
+
+    def copy_headers
+      ch = { COPY_SOURCE_HEADER=>"#{space_id}/#{content_id}" }
+      ch[COPY_SOURCE_STORE_HEADER] = store_id if store_id
+      ch
+    end
+
+    def copy_source
+      { space_id: space_id, content_id: content_id, store_id: store_id }
+    end
 
     def set_md5!(response)
       if md5

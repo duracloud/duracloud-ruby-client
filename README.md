@@ -181,6 +181,12 @@ D, [2016-04-29T18:32:06.465928 #32379] DEBUG -- : Duracloud::Client HEAD https:/
 
 *Added in v0.3.0; Changed in v0.4.0.*
 
+Accepts same keywords as `.find` and `.new` -- `:space_id`, `:content_id`, `:store_id` -- plus `:force`.
+
+The `:force` argument is a boolean (default `false`) indicating whether to replace existing content (if found) at the target location. If `:force` is false and content exists at the target location, the operation raises a `Duracloud::Content::CopyError` exception.
+
+Also, `:space_id` and `:content_id` arguments are not required, but default to the values of the current content object's attributes. An exception is raised if the source and destination locations are the same (regardless of the value of `:force`).
+
 ```
 >> content = Duracloud::Content.find(space_id: 'rest-api-testing', content_id: 'contentItem.txt')
 D, [2017-01-27T17:16:45.846459 #93283] DEBUG -- : Duracloud::Client HEAD https://duke.duracloud.org/durastore/rest-api-testing/contentItem.txt 200 OK
@@ -194,6 +200,8 @@ D, [2017-01-27T17:17:59.848741 #93283] DEBUG -- : Duracloud::Client PUT https://
 #### Move a content item
 
 *Added in v0.3.0; Changed in v0.4.0.*
+
+See also *Copy a content item, above.
 
 ```
 This is a convenience operation -- copy and delete -- not directly supported by the DuraCloud REST API.

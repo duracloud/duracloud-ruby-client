@@ -34,9 +34,14 @@ module Duracloud
     # @raise [Duracloud::MessageDigestError] the provided digest in the :md5 attribute,
     #   if given, does not match the stored value.
     def self.find(params={})
-      new(params).tap do |content|
+      content = new(params)
+      begin
         content.load_properties
+      rescue NotFoundError
+        raise if content.is_a?(ChunkedContent)
+        content = ChunkedContent.find(params)
       end
+      content
     end
 
     # Create new content in DuraCloud.
@@ -146,7 +151,7 @@ module Duracloud
     private
 
     def copy_headers
-      ch = { COPY_SOURCE_HEADER=>"#{space_id}/#{content_id}" }
+      ch = { COPY_SOURCE_HEADER => [ space_id, content_id ].join("/") }
       ch[COPY_SOURCE_STORE_HEADER] = store_id if store_id
       ch
     end

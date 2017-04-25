@@ -10,8 +10,20 @@ module Duracloud
           expect(Content.find(space_id: "foo", content_id: "bar")).to be_a(Content)
         }
       end
+      describe "when it is chunked" do
+        before do
+          stub_request(:head, url).to_return(status: 404)
+          stub_request(:head, "#{url}.dura-manifest").to_return(status: 200)
+        end
+        specify {
+          expect(Content.find(space_id: "foo", content_id: "bar")).to be_a(Content)
+        }
+      end
       describe "when it does not exist" do
-        before { stub_request(:head, url).to_return(status: 404) }
+        before do
+          stub_request(:head, url).to_return(status: 404)
+          stub_request(:head, "#{url}.dura-manifest").to_return(status: 404)
+        end
         specify {
           expect { Content.find(space_id: "foo", content_id: "bar") }.to raise_error(NotFoundError)
         }
@@ -40,8 +52,20 @@ module Duracloud
           expect(Content.exist?(space_id: "foo", content_id: "bar")).to be true
         }
       end
+      describe "when it is chunked" do
+        before do
+          stub_request(:head, url).to_return(status: 404)
+          stub_request(:head, "#{url}.dura-manifest")
+        end
+        specify {
+          expect(Content.exist?(space_id: "foo", content_id: "bar")).to be true
+        }
+      end
       describe "when it does not exist" do
-        before { stub_request(:head, url).to_return(status: 404) }
+        before do
+          stub_request(:head, url).to_return(status: 404)
+          stub_request(:head, "#{url}.dura-manifest").to_return(status: 404)
+        end
         specify {
           expect(Content.exist?(space_id: "foo", content_id: "bar")).to be false
         }
@@ -179,6 +203,7 @@ module Duracloud
         stub_request(:put, target)
           .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
         stub_request(:head, target).to_return(status: 404)
+        stub_request(:head, "#{target}.dura-manifest").to_return(status: 404)
       end
       specify {
         copied = subject.copy(space_id: "spam", content_id: "eggs")
@@ -189,10 +214,12 @@ module Duracloud
         stub1 = stub_request(:put, target)
                 .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
         stub2 = stub_request(:head, target).to_return(status: 404)
+        stub3 = stub_request(:head, "#{target}.dura-manifest").to_return(status: 404)
         copied = subject.copy(content_id: "eggs")
         expect(copied).to be_a(Content)
         expect(stub1).to have_been_requested
         expect(stub2).to have_been_requested
+        expect(stub3).to have_been_requested
       end
       describe "when the target exists" do
         before do
@@ -219,12 +246,14 @@ module Duracloud
           stub1 = stub_request(:put, target)
                   .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
           stub2 = stub_request(:head, target).to_return(status: 404)
-          stub3 = stub_request(:delete, "https://example.com/durastore/foo/bar")
+          stub3 = stub_request(:head, "#{target}.dura-manifest").to_return(status: 404)
+          stub4 = stub_request(:delete, "https://example.com/durastore/foo/bar")
           moved = subject.move(space_id: "spam", content_id: "eggs")
           expect(moved).to be_a(Content)
           expect(stub1).to have_been_requested
           expect(stub2).to have_been_requested
           expect(stub3).to have_been_requested
+          expect(stub4).to have_been_requested
         end
       end
       describe "when copy fails" do

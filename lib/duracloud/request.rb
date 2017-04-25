@@ -5,10 +5,10 @@ module Duracloud
     # @param client [Duracloud::Client] the client
     # @param http_method [Symbol] the lower-case symbol corresponding to HTTP method
     # @param url [String] relative or absolute URL
-    # @param body [String] the body of the request
-    # @param headers [Hash] HTTP headers
-    # @param query [Hash] Query string parameters
-    # def initialize(client, http_method, url, body: nil, headers: nil, query: nil)
+    # @param options [Hash] options
+    # @option options [String] :body the body of the request
+    # @option options [Hash] :headers HTTP headers
+    # @option options [Hash] :query query string parameters
     def initialize(client, http_method, url, **options)
       @client      = client
       @http_method = http_method
@@ -33,7 +33,7 @@ module Duracloud
     def set_options(options)
       @body    = options.delete(:body)
       @headers = options.delete(:headers)
-      query   = options.delete(:query) || {}
+      query    = options.delete(:query) || {}
       # Treat other keywords args as query params and ignore empty params
       @query = query.merge(options).reject { |k, v| v.to_s.empty? }
     end

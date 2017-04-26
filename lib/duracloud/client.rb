@@ -6,8 +6,8 @@ module Duracloud
     extend RestMethods
     include RestMethods
 
-    def self.execute(request_class, http_method, url, **options)
-      new.execute(request_class, http_method, url, **options)
+    def self.execute(request_class, http_method, url, **options, &block)
+      new.execute(request_class, http_method, url, **options, &block)
     end
 
     def self.configure
@@ -22,9 +22,9 @@ module Duracloud
       @config = Configuration.new(**options)
     end
 
-    def execute(request_class, http_method, url, **options)
+    def execute(request_class, http_method, url, **options, &block)
       request = request_class.new(self, http_method, url, **options)
-      response = request.execute
+      response = request.execute(&block)
       handle_response(response)
       response
     end

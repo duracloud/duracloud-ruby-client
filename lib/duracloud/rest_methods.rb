@@ -33,8 +33,8 @@ module Duracloud
       durastore(:delete, space_id, **query)
     end
 
-    def get_content(space_id, content_id, **options)
-      durastore_content(:get, space_id, content_id, **options)
+    def get_content(space_id, content_id, **options, &block)
+      durastore_content(:get, space_id, content_id, **options, &block)
     end
 
     def get_content_properties(space_id, content_id, **options)
@@ -85,14 +85,14 @@ module Duracloud
 
     private
 
-    def durastore(*args)
-      execute(DurastoreRequest, *args)
+    def durastore(*args, &block)
+      execute(DurastoreRequest, *args, &block)
     end
 
-    def durastore_content(http_method, space_id, content_id, **options)
+    def durastore_content(http_method, space_id, content_id, **options, &block)
       escaped_content_id = content_id.gsub(/%/, "%25").gsub(/ /, "%20")
       url = [ space_id, escaped_content_id ].join("/")
-      durastore(http_method, url, **options)
+      durastore(http_method, url, **options, &block)
     end
 
   end

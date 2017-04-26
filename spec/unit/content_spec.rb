@@ -115,7 +115,6 @@ module Duracloud
         end
         describe "and the body has not changed" do
           before {
-            allow(subject).to receive(:body_changed?) { false }
             stub_request(:post, url)
               .with(headers: {'x-dura-meta-creator'=>'testuser'})
           }

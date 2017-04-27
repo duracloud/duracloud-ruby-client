@@ -79,6 +79,10 @@ module Duracloud
       COPY_CONTENT =~ prop
     end
 
+    def initialize(props = {})
+      super filter(props)
+    end
+
     # Is the property valid for this class of properties?
     # @note Subclasses should not override this method, but instead
     #   override the `.property?' class method.

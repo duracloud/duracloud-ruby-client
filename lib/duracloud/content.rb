@@ -1,19 +1,19 @@
-require "active_model"
-
 module Duracloud
   #
-  # A piece of content in DuraCloud
+  # A DuraCloud content item
   #
-  class Content
-    include ActiveModel::Model
-    include Persistence
-    include HasProperties
+  class Content < AbstractEntity
 
     class CopyError < Error; end
 
     CHUNK_SIZE = 1024 * 16
-    COPY_SOURCE_HEADER = "x-dura-meta-copy-source"
+
+    COPY_SOURCE_HEADER       = "x-dura-meta-copy-source"
     COPY_SOURCE_STORE_HEADER = "x-dura-meta-copy-source-store"
+
+    attr_reader :space_id, :content_id, :store_id
+    attr_accessor :body, :md5, :content_type
+    alias_method :id, :content_id
 
     # Does the content exist in DuraCloud?
     # @return [Boolean] whether the content exists.
@@ -32,8 +32,15 @@ module Duracloud
     #   if given, does not match the stored value.
     def self.find(**kwargs)
       new(**kwargs).tap do |content|
-        content.load_properties
+        content.persisted!
+        content.properties
+        if content.md5 && ( content.md5 != content.stored_md5 )
+          raise MessageDigestError,
+                "Expected MD5: {#{content.md5}}; DuraCloud MD5: {#{content.stored_md5}}."
+        end
       end
+    rescue NotFoundError
+      ChunkedContent.find(**kwargs)
     end
 
     # Create new content in DuraCloud.
@@ -45,10 +52,16 @@ module Duracloud
       new(**kwargs).save
     end
 
-    attr_accessor :space_id, :content_id, :store_id,
-                  :body, :md5, :content_type
-    alias_method :id, :content_id
-    validates_presence_of :space_id, :content_id
+    def initialize(space_id:, content_id:, store_id: nil, md5: nil)
+      @space_id = space_id
+      @content_id = content_id
+      @store_id = store_id
+      @md5 = md5
+    end
+
+    def stored_md5
+      properties_response.md5
+    end
 
     # Return the space associated with this content.
     # @return [Duracloud::Space] the space.
@@ -98,7 +111,7 @@ module Duracloud
       dest[:content_id] ||= content_id
       raise CopyError, "Destination is the same as the source." if dest == copy_source
       if !args[:force] && Content.exist?(**dest)
-        raise CopyError, "Destination exists and :false option is false."
+        raise CopyError, "Destination exists and :force option is false."
       end
       options = { storeID: dest[:store_id], headers: copy_headers }
       Client.copy_content(dest[:space_id], dest[:content_id], **options)
@@ -113,6 +126,8 @@ module Duracloud
       copied
     end
 
+    private
+
     def store
       headers = {
         "Content-MD5"  => md5 || calculate_md5,
@@ -122,8 +137,6 @@ module Duracloud
       options = { body: body, headers: headers, query: query }
       Client.store_content(*args, **options)
     end
-
-    private
 
     def copy_headers
       ch = { COPY_SOURCE_HEADER=>"#{space_id}/#{content_id}" }

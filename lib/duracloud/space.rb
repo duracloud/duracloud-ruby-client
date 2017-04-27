@@ -3,13 +3,9 @@ require "nokogiri"
 
 module Duracloud
   #
-  # A "space" within a DuraCloud account.
+  # A DuraCloud space.
   #
-  class Space
-    include Persistence
-    include HasProperties
-
-    after_save :reset_acls
+  class Space < AbstractEntity
 
     # Max size of content item list for one request.
     #   This limit is imposed by Duracloud.
@@ -86,7 +82,8 @@ module Duracloud
       # @raise [Duracloud::NotFoundError] the space or store was not found
       def find(*args)
         new(*args) do |space|
-          space.load_properties
+          space.persisted!
+          space.properties
         end
       end
 

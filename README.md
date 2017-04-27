@@ -1,4 +1,5 @@
 # duracloud-ruby-client
+
 Ruby client for communicating with DuraCloud
 
 ## Installation
@@ -84,7 +85,7 @@ D, [2016-04-29T12:12:32.641574 #28275] DEBUG -- : Duracloud::Client PUT https://
  => #<Duracloud::Space space_id="rest-api-testing2", store_id="(default)"> 
 ```
 
-A `Duracloud::BadRequestError` is raise if the space ID is invalid (illegal characters, too long, etc.).
+A `Duracloud::BadRequestError` exception is raised if the space ID is invalid (illegal characters, too long, etc.).
 
 #### Retrieve a space and view its properties
 
@@ -100,7 +101,7 @@ D, [2016-04-29T12:15:12.593075 #28275] DEBUG -- : Duracloud::Client HEAD https:/
  => #<DateTime: 2016-04-05T17:59:11+00:00 ((2457484j,64751s,0n),+0s,2299161j)> 
 ```
 
-A `Duracloud::NotFoundError` exception is raise if the space does not exist.
+A `Duracloud::NotFoundError` exception is raised if the space does not exist.
 
 #### Enumerate the content IDs of the space
 
@@ -233,7 +234,7 @@ D, [2016-04-29T18:28:31.459962 #32379] DEBUG -- : Duracloud::Client DELETE https
 I, [2016-04-29T18:28:31.460069 #32379]  INFO -- : Content foo2 deleted successfully
  => #<Duracloud::Content space_id="rest-api-testing", content_id="foo2", store_id=(default)>
 
->> Duracloud::Content.exist?("rest-api-testing", "foo2")
+>> Duracloud::Content.exist?(space_id: "rest-api-testing", content_id: "foo2")
 D, [2016-04-29T18:29:03.935451 #32379] DEBUG -- : Duracloud::Client HEAD https://foo.duracloud.org/durastore/rest-api-testing/foo2 404 Not Found
  => false
 ```

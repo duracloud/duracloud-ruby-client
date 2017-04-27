@@ -1,9 +1,13 @@
+require 'support/shared_examples_for_tsv'
+
 module Duracloud
   RSpec.describe BitIntegrityReport do
 
+    subject { described_class.new("myspace") }
+
     let(:path) { File.expand_path('../../fixtures/bit_integrity_report.tsv', __FILE__) }
 
-    subject { described_class.new("myspace") }
+    it_behaves_like "a TSV"
 
     describe "#csv" do
       before do
@@ -15,20 +19,6 @@ module Duracloud
         expect(subject.rows.to_a.size).to eq(3)
         expect(subject.rows.first).to eq({"date_checked"=>"2016-05-15T04:11:14", "account"=>"example", "store_id"=>"1065", "store_type"=>"AMAZON_S3", "space_id"=>"myspace", "content_id"=>"BINARIES/00/00/e8/0000e819ac3e67d039d288adaab5b5e44c3c21d9", "result"=>"SUCCESS", "content_checksum"=>"27333f3c06a6d259863384799be68d30", "provider_checksum"=>"27333f3c06a6d259863384799be68d30", "manifest_checksum"=>"27333f3c06a6d259863384799be68d30", "details"=>"--"})
       }
-    end
-
-    describe "#load_tsv" do
-      it "loads a string" do
-        tsv = File.read(path)
-        subject.load_tsv(tsv)
-        expect(subject.tsv).to eq(tsv)
-      end
-      it "loads an IO" do
-        tsv = File.read(path)
-        tsv_io = File.new(path, "rb")
-        subject.load_tsv(tsv)
-        expect(subject.tsv.to_s).to eq(tsv)
-      end
     end
 
   end

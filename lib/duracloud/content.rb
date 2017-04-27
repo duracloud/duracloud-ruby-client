@@ -113,6 +113,8 @@ module Duracloud
       copied
     end
 
+    private
+
     def store
       headers = {
         "Content-MD5"  => md5 || calculate_md5,
@@ -122,8 +124,6 @@ module Duracloud
       options = { body: body, headers: headers, query: query }
       Client.store_content(*args, **options)
     end
-
-    private
 
     def copy_headers
       ch = { COPY_SOURCE_HEADER=>"#{space_id}/#{content_id}" }

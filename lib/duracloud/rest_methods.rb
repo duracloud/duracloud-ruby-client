@@ -61,8 +61,8 @@ module Duracloud
       durastore(:get, "audit/#{space_id}", **query)
     end
 
-    def get_manifest(space_id, **query)
-      durastore(:get, "manifest/#{space_id}", **query)
+    def get_manifest(space_id, **query, &block)
+      durastore(:get, "manifest/#{space_id}", **query, &block)
     end
 
     def get_bit_integrity_report(space_id, **query)

@@ -4,16 +4,14 @@ module Duracloud
   #
   # A piece of content in DuraCloud
   #
-  class Content
-    include ActiveModel::Model
-    include Persistence
-    include HasProperties
+  class Content < AbstractEntity
 
     class CopyError < Error; end
 
     CHUNK_SIZE = 1024 * 16
     COPY_SOURCE_HEADER = "x-dura-meta-copy-source"
     COPY_SOURCE_STORE_HEADER = "x-dura-meta-copy-source-store"
+    MANIFEST_EXT = ".dura-manifest"
 
     # Does the content exist in DuraCloud?
     # @return [Boolean] whether the content exists.
@@ -34,6 +32,8 @@ module Duracloud
       new(**kwargs).tap do |content|
         content.load_properties
       end
+    rescue NotFoundError => e
+      ChunkedContent.find(**kwargs)
     end
 
     # Create new content in DuraCloud.
@@ -61,19 +61,6 @@ module Duracloud
       "#<#{self.class} space_id=#{space_id.inspect}," \
       " content_id=#{content_id.inspect}," \
       " store_id=#{store_id || '(default)'}>"
-    end
-
-    def load_properties
-      super do |response|
-        if md5
-          if md5 != response.md5
-            raise MessageDigestError, "Expected MD5: {#{md5}}; DuraCloud MD5: {#{response.md5}}."
-          end
-        else
-          self.md5 = response.md5
-        end
-        self.content_type = response.content_type
-      end
     end
 
     # Is the content empty?
@@ -140,9 +127,7 @@ module Duracloud
     end
 
     def set_properties
-      headers = properties.to_h
-      options = { headers: headers, query: query }
-      Client.set_content_properties(*args, **options)
+      Client.set_content_properties(*args, headers: properties, query: query)
     end
 
     def calculate_md5
@@ -163,8 +148,17 @@ module Duracloud
       ContentProperties
     end
 
-    def get_properties_response
-      Client.get_content_properties(*args, **query)
+    def do_load_properties
+      response = Client.get_content_properties(*args, **query)
+      if md5
+        if md5 != response.md5
+          raise MessageDigestError, "Expected MD5: {#{md5}}; DuraCloud MD5: {#{response.md5}}."
+        end
+      else
+        self.md5 = response.md5
+      end
+      self.properties = response.headers
+      self.content_type = response.content_type
     end
 
     def do_delete

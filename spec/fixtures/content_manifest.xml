@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<dur:chunksManifest xmlns:dur="duracloud.org">
+  <header schemaVersion="0.2">
+    <sourceContent contentId="datastreamStore/8/b/d4/info%3Afedora%2Fduke%3A447146%2Fcontent%2Fcontent.0">
+      <mimetype>application/octet-stream</mimetype>
+      <byteSize>4227858432</byteSize>
+      <md5>164e9aee34c0c42915716e11d5d539b5</md5>
+    </sourceContent>
+  </header>
+  <chunks>
+    <chunk chunkId="datastreamStore/8/b/d4/info%3Afedora%2Fduke%3A447146%2Fcontent%2Fcontent.0.dura-chunk-0000" index="0">
+      <byteSize>1000000000</byteSize>
+      <md5>8a7d5beb2523fb5e4d7c921096be50a9</md5>
+    </chunk>
+    <chunk chunkId="datastreamStore/8/b/d4/info%3Afedora%2Fduke%3A447146%2Fcontent%2Fcontent.0.dura-chunk-0001" index="1">
+      <byteSize>1000000000</byteSize>
+      <md5>e37115d4da0e187130ab645dee4f14ed</md5>
+    </chunk>
+    <chunk chunkId="datastreamStore/8/b/d4/info%3Afedora%2Fduke%3A447146%2Fcontent%2Fcontent.0.dura-chunk-0002" index="2">
+      <byteSize>1000000000</byteSize>
+      <md5>e37115d4da0e187130ab645dee4f14ed</md5>
+    </chunk>
+    <chunk chunkId="datastreamStore/8/b/d4/info%3Afedora%2Fduke%3A447146%2Fcontent%2Fcontent.0.dura-chunk-0003" index="3">
+      <byteSize>1000000000</byteSize>
+      <md5>93e9a4d242a9fb89796b98060094910d</md5>
+    </chunk>
+    <chunk chunkId="datastreamStore/8/b/d4/info%3Afedora%2Fduke%3A447146%2Fcontent%2Fcontent.0.dura-chunk-0004" index="4">
+      <byteSize>227858432</byteSize>
+      <md5>db0124ee56298ff7c7ac17be4ef14871</md5>
+    </chunk>
+  </chunks>
+</dur:chunksManifest>

@@ -33,7 +33,7 @@ module Duracloud
     # @param prop [String] the property name
     # @return [Boolean]
     def self.property?(prop)
-      duracloud_property?(prop) && !internal_property?(prop)
+      duracloud_property?(prop)
     end
 
     # Filter the hash of properties, selecting only the properties valid

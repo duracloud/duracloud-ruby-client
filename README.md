@@ -154,6 +154,12 @@ If the space or content ID does not exist, a `Duracloud::NotFoundError` is raise
 If an MD5 digest is provided (:md5 attribute), a `Duracloud::MessageDigestError` is
 raised if the content ID exists and the stored digest does not match.
 
+*Added in v0.4.0*
+
+If a content item is not found at the content ID, `Duracloud::Content.find` will look for a "content manifest"
+by appending ".dura-manifest" to the content ID. If the manifest is found, the content item is marked as
+"chunked". **Caution: Working with chunked files should be considered EXPERIMENTAL.**
+
 #### Update the properties for a content item
 
 ```

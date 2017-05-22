@@ -16,24 +16,25 @@ module Duracloud
       set_options(options.dup)
     end
 
-    def execute
-      response_class.new(original_response)
+    def execute(&block)
+      response_class.new original_response(&block)
     end
 
     private
 
-    def original_response
+    def original_response(&block)
       connection.send(http_method,
                       url,
                       body: body,
                       query: query,
-                      header: headers)
+                      header: headers,
+                      &block)
     end
 
     def set_options(options)
       @body    = options.delete(:body)
       @headers = options.delete(:headers)
-      query   = options.delete(:query) || {}
+      query    = options.delete(:query) || {}
       # Treat other keywords args as query params and ignore empty params
       @query = query.merge(options).reject { |k, v| v.to_s.empty? }
     end

@@ -1,4 +1,5 @@
 # duracloud-ruby-client
+
 Ruby client for communicating with DuraCloud
 
 ## Installation
@@ -84,7 +85,7 @@ D, [2016-04-29T12:12:32.641574 #28275] DEBUG -- : Duracloud::Client PUT https://
  => #<Duracloud::Space space_id="rest-api-testing2", store_id="(default)"> 
 ```
 
-A `Duracloud::BadRequestError` is raise if the space ID is invalid (illegal characters, too long, etc.).
+A `Duracloud::BadRequestError` exception is raised if the space ID is invalid (illegal characters, too long, etc.).
 
 #### Retrieve a space and view its properties
 
@@ -100,7 +101,7 @@ D, [2016-04-29T12:15:12.593075 #28275] DEBUG -- : Duracloud::Client HEAD https:/
  => #<DateTime: 2016-04-05T17:59:11+00:00 ((2457484j,64751s,0n),+0s,2299161j)> 
 ```
 
-A `Duracloud::NotFoundError` exception is raise if the space does not exist.
+A `Duracloud::NotFoundError` exception is raised if the space does not exist.
 
 #### Enumerate the content IDs of the space
 
@@ -153,6 +154,12 @@ If the space or content ID does not exist, a `Duracloud::NotFoundError` is raise
 If an MD5 digest is provided (:md5 attribute), a `Duracloud::MessageDigestError` is
 raised if the content ID exists and the stored digest does not match.
 
+*Added in v0.4.0*
+
+If a content item is not found at the content ID, `Duracloud::Content.find` will look for a "content manifest"
+by appending ".dura-manifest" to the content ID. If the manifest is found, the content item is marked as
+"chunked". **Caution: Working with chunked files should be considered EXPERIMENTAL.**
+
 #### Update the properties for a content item
 
 ```
@@ -177,6 +184,48 @@ D, [2016-04-29T18:32:06.465928 #32379] DEBUG -- : Duracloud::Client HEAD https:/
  => "bob@example.com"
 ```     
 
+#### Copy a content item
+
+*Added in v0.3.0; Changed in v0.4.0.*
+
+Accepts same keywords as `.find` and `.new` -- `:space_id`, `:content_id`, `:store_id` -- plus `:force`.
+
+The `:force` argument is a boolean (default `false`) indicating whether to replace existing content (if found) at the target location. If `:force` is false and content exists at the target location, the operation raises a `Duracloud::Content::CopyError` exception.
+
+Also, `:space_id` and `:content_id` arguments are not required, but default to the values of the current content object's attributes. An exception is raised if the source and destination locations are the same (regardless of the value of `:force`).
+
+```
+>> content = Duracloud::Content.find(space_id: 'rest-api-testing', content_id: 'contentItem.txt')
+D, [2017-01-27T17:16:45.846459 #93283] DEBUG -- : Duracloud::Client HEAD https://duke.duracloud.org/durastore/rest-api-testing/contentItem.txt 200 OK
+ => #<Duracloud::Content space_id="rest-api-testing", content_id="contentItem.txt", store_id=(default)> 
+
+>> content.copy(space_id: 'rest-api-testing2')
+D, [2017-01-27T17:17:59.848741 #93283] DEBUG -- : Duracloud::Client PUT https://duke.duracloud.org/durastore/rest-api-testing2/contentItem.txt 201 Created
+ => #<Duracloud::Content space_id="rest-api-testing2", content_id="contentItem.txt", store_id=(default)> 
+```
+
+#### Move a content item
+
+*Added in v0.3.0; Changed in v0.4.0.*
+
+See also *Copy a content item, above.
+
+```
+This is a convenience operation -- copy and delete -- not directly supported by the DuraCloud REST API.
+
+>> content = Duracloud::Content.find(space_id: 'rest-api-testing', content_id: 'contentItem.txt')
+D, [2017-01-27T17:19:41.926994 #93286] DEBUG -- : Duracloud::Client HEAD https://duke.duracloud.org/durastore/rest-api-testing/contentItem.txt 200 OK
+ => #<Duracloud::Content space_id="rest-api-testing", content_id="contentItem.txt", store_id=(default)> 
+
+>> content.move(space_id: 'rest-api-testing2')
+D, [2017-01-27T17:20:07.542468 #93286] DEBUG -- : Duracloud::Client PUT https://duke.duracloud.org/durastore/rest-api-testing2/contentItem.txt 201 Created
+D, [2017-01-27T17:20:08.442504 #93286] DEBUG -- : Duracloud::Client DELETE https://duke.duracloud.org/durastore/rest-api-testing/contentItem.txt 200 OK
+ => #<Duracloud::Content space_id="rest-api-testing2", content_id="contentItem.txt", store_id=(default)> 
+
+>> content.deleted?
+ => true 
+```
+
 #### Delete a content item
 
 ```
@@ -191,7 +240,7 @@ D, [2016-04-29T18:28:31.459962 #32379] DEBUG -- : Duracloud::Client DELETE https
 I, [2016-04-29T18:28:31.460069 #32379]  INFO -- : Content foo2 deleted successfully
  => #<Duracloud::Content space_id="rest-api-testing", content_id="foo2", store_id=(default)>
 
->> Duracloud::Content.exist?("rest-api-testing", "foo2")
+>> Duracloud::Content.exist?(space_id: "rest-api-testing", content_id: "foo2")
 D, [2016-04-29T18:29:03.935451 #32379] DEBUG -- : Duracloud::Client HEAD https://foo.duracloud.org/durastore/rest-api-testing/foo2 404 Not Found
  => false
 ```

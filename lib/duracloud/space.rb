@@ -5,9 +5,7 @@ module Duracloud
   #
   # A "space" within a DuraCloud account.
   #
-  class Space
-    include Persistence
-    include HasProperties
+  class Space < AbstractEntity
 
     after_save :reset_acls
 
@@ -119,7 +117,7 @@ module Duracloud
       end
     end
 
-    attr_reader :space_id, :store_id
+    attr_accessor :space_id, :store_id
     alias_method :id, :space_id
 
     after_save :reset_acls
@@ -128,8 +126,7 @@ module Duracloud
     # @param space_id [String] the space ID
     # @param store_id [String] the store ID (optional)
     def initialize(space_id, store_id = nil)
-      @space_id = space_id
-      @store_id = store_id
+      super(space_id: space_id, store_id: store_id)
       yield self if block_given?
     end
 
@@ -226,6 +223,11 @@ module Duracloud
 
     private
 
+    def do_load_properties
+      response = Client.get_space_properties(id, **query)
+      self.properties = response.headers
+    end
+
     def reset_acls
       @acls = nil
     end
@@ -242,10 +244,6 @@ module Duracloud
 
     def properties_class
       SpaceProperties
-    end
-
-    def get_properties_response
-      Client.get_space_properties(id, **query)
     end
 
     def do_delete

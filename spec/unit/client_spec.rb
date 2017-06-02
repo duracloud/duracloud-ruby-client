@@ -275,6 +275,20 @@ module Duracloud
       }
     end
 
+    describe "generate_manifest" do
+      specify {
+        stub = stub_request(:post, "https://example.com/durastore/manifest/foo")
+        subject.generate_manifest("foo")
+        expect(stub).to have_been_requested
+      }
+      specify {
+        stub = stub_request(:post, "https://example.com/durastore/manifest/foo")
+               .with(query: {format: "BAGIT", storeID: 1})
+        subject.generate_manifest("foo", format: "BAGIT", storeID: 1)
+        expect(stub).to have_been_requested
+      }
+    end
+
     describe "get_bit_integrity_report" do
       specify {
         stub = stub_request(:get, "https://example.com/durastore/bit-integrity/foo")

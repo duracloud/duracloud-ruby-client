@@ -24,6 +24,8 @@ module Duracloud
   autoload :Space, "duracloud/space"
   autoload :SpaceAcls, "duracloud/space_acls"
   autoload :Store, "duracloud/store"
+  autoload :StorageReport, "duracloud/storage_report"
+  autoload :StorageReports, "duracloud/storage_reports"
   autoload :SyncValidation, "duracloud/sync_validation"
   autoload :TSV, "duracloud/tsv"
 end

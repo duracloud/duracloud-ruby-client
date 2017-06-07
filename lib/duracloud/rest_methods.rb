@@ -108,6 +108,21 @@ module Duracloud
             "The API method 'Perform Task' has not been implemented."
     end
 
+    # @see https://wiki.duraspace.org/display/DURACLOUDDOC/DuraCloud+REST+API#DuraCloudRESTAPI-GetStorageReportsbySpace
+    def get_storage_reports_by_space(space_id, **query)
+      durastore(:get, "report/space/#{space_id}", **query)
+    end
+
+    # @see https://wiki.duraspace.org/display/DURACLOUDDOC/DuraCloud+REST+API#DuraCloudRESTAPI-GetStorageReportsbyStore
+    def get_storage_reports_by_store(**query)
+      durastore(:get, "report/store", **query)
+    end
+
+    # @see https://wiki.duraspace.org/display/DURACLOUDDOC/DuraCloud+REST+API#DuraCloudRESTAPI-GetStorageReportsforallSpacesinaStore(inasingleday)
+    def get_storage_reports_for_all_spaces_in_a_store(epoch_ms, **query)
+      durastore(:get, "report/store/#{epoch_ms}", **query)
+    end
+
     private
 
     def durastore(*args, &block)

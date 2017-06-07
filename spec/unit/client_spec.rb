@@ -329,5 +329,29 @@ module Duracloud
           .to raise_error(NotImplementedError)
       }
     end
+
+    describe "get_storage_reports_by_space" do
+      specify {
+        stub = stub_request(:get, "https://example.com/durastore/report/space/foo")
+        subject.get_storage_reports_by_space("foo")
+        expect(stub).to have_been_requested
+      }
+    end
+
+    describe "get_storage_reports_by_store" do
+      specify {
+        stub = stub_request(:get, "https://example.com/durastore/report/store")
+        subject.get_storage_reports_by_store
+        expect(stub).to have_been_requested
+      }
+    end
+
+    describe "get_storage_reports_for_all_spaces_in_a_store" do
+      specify {
+        stub = stub_request(:get, "https://example.com/durastore/report/store/1499400000000")
+        subject.get_storage_reports_for_all_spaces_in_a_store(1499400000000)
+        expect(stub).to have_been_requested
+      }
+    end
   end
 end

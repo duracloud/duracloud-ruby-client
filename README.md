@@ -276,6 +276,17 @@ D, [2016-05-19T13:37:39.831013 #28754] DEBUG -- : Duracloud::Client GET https://
  => ["space_id", "content_id", "md5"]
 ```
 
+*Added in v0.5.0: Support for asynchronous generation of manifest (Generate Manifest API)*
+
+```
+>> manifest = Duracloud::Manifest.new('ddr-validation')
+ => #<Duracloud::Manifest:0x007f8fd82fe328 @space_id="ddr-validation", @store_id=nil>
+>> manifest.generate
+ D, [2017-06-06T20:49:50.191301 #92029] DEBUG -- : Duracloud::Client POST https://duke.duracloud.org/durastore/manifest/ddr-validation 202 Accepted
+ I, [2017-06-06T20:49:50.191414 #92029]  INFO -- : We are processing your manifest generation request. To retrieve your file, please poll the URI in the Location header of this response: (https://duke.duracloud.org/durastore/x-duracloud-admin/generated-manifests/manifest-ddr-validation_amazon_s3_2017-06-07-00-49-50.txt.gz).
+ => "https://duke.duracloud.org/durastore/x-duracloud-admin/generated-manifests/manifest-ddr-validation_amazon_s3_2017-06-07-00-49-50.txt.gz"
+```  
+
 #### Bit Integrity Report
 
 ```

@@ -21,5 +21,16 @@ module Duracloud
       }
     end
 
+    describe "#generate" do
+      before do
+        stub_request(:post, "https://example.com/durastore/manifest/myspace?format=TSV")
+          .to_return(status: 202,
+                     headers: { "Location" => "https://example.com/durastore/x-duracloud-admin/generated-manifests/manifest-myspace_amazon_s3_2017-06-02-18-20-14.txt.gz" })
+      end
+      specify {
+        expect(subject.generate).to eq "https://example.com/durastore/x-duracloud-admin/generated-manifests/manifest-myspace_amazon_s3_2017-06-02-18-20-14.txt.gz"
+      }
+    end
+
   end
 end

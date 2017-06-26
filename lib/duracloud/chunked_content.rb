@@ -17,6 +17,10 @@ module Duracloud
       @manifest
     end
 
+    def chunked?
+      true
+    end
+
     private
 
     def do_load_properties
@@ -29,6 +33,7 @@ module Duracloud
       end
       self.properties = manifest.properties.dup
       self.content_type = manifest.source.content_type
+      self.size = manifest.source.size
     end
 
   end

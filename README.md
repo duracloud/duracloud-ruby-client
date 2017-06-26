@@ -121,6 +121,25 @@ foo8
  => ["ark:/99999/fk4zzzz", "foo", "foo2", "foo22", "foo3", "foo5", "foo7", "foo8"] 
 ```
 
+#### Sync Validation
+
+*New in version 0.6.0*
+
+Sync validation is the process of comparing the files in a local content directory with content in a DuraCloud space in order to confirm that all local content has been successfully sync.  This functionality is NOT part of the DuraCloud REST API and is provided AS IS (per the license terms).
+
+Assumptions:
+- The external program `md5deep` is installed and available on the user's path. See http://md5deep.sourceforge.net/ for `md5deep` documentation and download packages.
+- The content IDs in the target DuraCloud space match the relative paths of files in the source content directory -- i.e., no support for "prefixes" (this may change in the future).
+
+Process:
+- The space manifest is downloaded from DuraCloud and converted to the expected input format for `md5deep` (two columns: md5 hash and file path, separated by two spaces).
+- `md5deep` is run against the content directory in "non-matching" mode (-X) with the converted manifest as the list of "known hashes".
+- Non-matching files from the `md5deep` run are re-checked individually by calling `Duracloud::Content.exist?`. This pass will account for content sync after `md5deep` started as well as files that have been chunked in DuraCloud.
+
+```ruby
+Duracloud::SyncValidation.call(space_id: 'foo', content_dir: '/var/foo/bar')
+```
+
 ### Content
 
 #### Create a new content item and store it in DuraCloud
@@ -298,6 +317,12 @@ D, [2016-05-19T13:37:39.831013 #28754] DEBUG -- : Duracloud::Client GET https://
 D, [2016-05-19T15:39:33.538448 #29974] DEBUG -- : Duracloud::Client GET https://duke.duracloud.org/durastore/bit-integrity/rest-api-testing 200 OK
  => #<CSV::Table mode:col_or_row row_count:8> 
 ```
+
+### Command Line Interface
+
+*New in version 0.6.0*
+
+The `bin/` directory of the gem now includes an executable `duracloud`.  Use `-h/--help` to display usage.  If the gem was installed with `bundler` you may need to run `bundle exec bin/duracloud`.
 
 ## Versioning
 

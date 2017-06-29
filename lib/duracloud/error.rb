@@ -5,4 +5,5 @@ module Duracloud
   class BadRequestError < Error; end
   class ConflictError < Error; end
   class MessageDigestError < Error; end
+  class CommandError < Error; end
 end

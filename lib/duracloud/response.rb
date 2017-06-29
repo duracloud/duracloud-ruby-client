@@ -8,7 +8,7 @@ module Duracloud
 
     delegate [:header, :body, :code, :ok?, :redirect?, :status, :reason] => :original_response,
              :content_type => :header,
-             [:size, :empty?] => :body
+             :empty? => :body
 
     def_delegator :header, :request_uri, :url
     def_delegator :header, :request_method
@@ -38,6 +38,10 @@ module Duracloud
 
     def md5
       header["content-md5"].first
+    end
+
+    def size
+      header["content-length"].first.to_i rescue nil
     end
   end
 end

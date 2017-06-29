@@ -13,6 +13,14 @@ module Duracloud
 
     attr_reader :space_id, :store_id
 
+    def self.download(*args, **kwargs, &block)
+      new(*args).download(**kwargs, &block)
+    end
+
+    def self.download_generated(*args, **kwargs, &block)
+      new(*args).download_generated(**kwargs, &block)
+    end
+
     def initialize(space_id, store_id = nil)
       @space_id = space_id
       @store_id = store_id

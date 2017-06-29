@@ -10,6 +10,7 @@ module Duracloud
         describe "and it is not chunked" do
           before { stub_request(:head, url) }
           it { is_expected.to be_a described_class }
+          it { is_expected.to_not be_chunked }
         end
         describe "and it is chunked" do
           let(:manifest_xml) { File.read(File.expand_path("../../fixtures/content_manifest.xml", __FILE__)) }
@@ -20,7 +21,9 @@ module Duracloud
           end
           it { is_expected.to be_a described_class }
           its(:md5) { is_expected.to eq "164e9aee34c0c42915716e11d5d539b5" }
+          its(:size) { is_expected.to eq 4227858432 }
           its(:content_type) { is_expected.to eq "application/octet-stream" }
+          it { is_expected.to be_chunked }
         end
       end
       describe "when it does not exist" do

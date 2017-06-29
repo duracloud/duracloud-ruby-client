@@ -7,6 +7,8 @@ module Duracloud
   autoload :BitIntegrityReport, "duracloud/bit_integrity_report"
   autoload :ChunkedContent, "duracloud/chunked_content"
   autoload :Client, "duracloud/client"
+  autoload :Command, "duracloud/command"
+  autoload :Commands, "duracloud/commands"
   autoload :Configuration, "duracloud/configuration"
   autoload :Connection, "duracloud/connection"
   autoload :Content, "duracloud/content"
@@ -25,5 +27,6 @@ module Duracloud
   autoload :SpaceAcls, "duracloud/space_acls"
   autoload :SpaceProperties, "duracloud/space_properties"
   autoload :Store, "duracloud/store"
+  autoload :SyncValidation, "duracloud/sync_validation"
   autoload :TSV, "duracloud/tsv"
 end

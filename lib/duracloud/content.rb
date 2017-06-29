@@ -46,7 +46,7 @@ module Duracloud
     end
 
     attr_accessor :space_id, :content_id, :store_id,
-                  :body, :md5, :content_type
+                  :body, :md5, :content_type, :size
     alias_method :id, :content_id
     validates_presence_of :space_id, :content_id
 
@@ -98,6 +98,14 @@ module Duracloud
       copied = copy(**args)
       delete
       copied
+    end
+
+    def chunked?
+      false
+    end
+
+    def human_size
+      ActiveSupport::NumberHelper.number_to_human_size(size, prefix: :si)
     end
 
     private
@@ -159,6 +167,7 @@ module Duracloud
       end
       self.properties = response.headers
       self.content_type = response.content_type
+      self.size = response.size
     end
 
     def do_delete

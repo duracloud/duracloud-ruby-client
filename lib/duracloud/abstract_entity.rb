@@ -42,7 +42,7 @@ module Duracloud
     #   but does not exist in Duracloud
     def properties
       load_properties if persisted? && @properties.nil?
-      @properties ||= properties_class.new
+      @properties ||= Properties.new
     end
 
 
@@ -76,8 +76,7 @@ module Duracloud
     end
 
     def properties=(props)
-      filtered = props ? properties_class.filter(props) : props
-      @properties = properties_class.new(filtered)
+      @properties = Properties.new(props)
     end
 
     def reset_properties

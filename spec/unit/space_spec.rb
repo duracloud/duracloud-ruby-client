@@ -52,9 +52,15 @@ EOS
       describe "when found" do
         before {
           stub_request(:head, url)
+            .to_return(headers: {
+                         "X-Dura-Meta-Space-Count"=>"1000+",
+                         "X-Dura-Meta-Space-Created"=>"2017-05-18T20:03:18",
+                       })
         }
         it { is_expected.to be_a(Space) }
         its(:space_id) { is_expected.to eq("foo") }
+        its(:count) { is_expected.to eq 1000 }
+        its(:created) { is_expected.to eq DateTime.parse("2017-05-18T20:03:18") }
       end
       describe "when not found" do
         before {
@@ -123,22 +129,17 @@ EOS
         stub_request(:head, "#{url}/foo1")
         stub_request(:head, "#{url}/foo2")
         stub_request(:head, "#{url}/foo3")
-        allow(Client).to receive(:get_space)
-                          .with("foo", hash_including(storeID: nil)) {
-          double(body: body,
-                 headers: {
-                   'x-dura-meta-space-count'=>'3',
-                   'x-dura-meta-space-created'=>'2016-04-05T17:59:11'
-                 })
-        }
-        allow(Client).to receive(:get_space_properties)
-                          .with("foo", hash_including(storeID: nil)) {
-          double(body: "",
-                 headers: {
-                   'x-dura-meta-space-count'=>'3',
-                   'x-dura-meta-space-created'=>'2016-04-05T17:59:11'
-                 })
-        }
+        stub_request(:get, "#{url}?maxResults=1000")
+          .to_return(body: body,
+                     headers: {
+                       'X-Dura-Meta-Space-Count'=>'3',
+                       'X-Dura-Meta-Space-Created'=>'2016-04-05T17:59:11'
+                     })
+        stub_request(:head, url)
+          .to_return(headers: {
+                       'X-Dura-Meta-Space-Count'=>'3',
+                       'X-Dura-Meta-Space-Created'=>'2016-04-05T17:59:11'
+                     })
       }
       describe "class methods" do
         specify {

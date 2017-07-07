@@ -8,21 +8,37 @@ module Duracloud
       describe "when it exists" do
         subject { described_class.find(space_id: "foo", content_id: "bar") }
         describe "and it is not chunked" do
-          before { stub_request(:head, url) }
+          before {
+            stub_request(:head, url)
+              .to_return(headers: {
+                           "Content-MD5"=>"164e9aee34c0c42915716e11d5d539b5",
+                           "Content-Length"=>"1811970",
+                           "Content-Type"=>"image/jpeg",
+                           "Last-Modified"=>"2017-06-12T17:36:58",
+                         })
+          }
           it { is_expected.to be_a described_class }
           it { is_expected.to_not be_chunked }
+          its(:md5) { is_expected.to eq "164e9aee34c0c42915716e11d5d539b5" }
+          its(:size) { is_expected.to eq 1811970 }
+          its(:content_type) { is_expected.to eq "image/jpeg" }
+          its(:modified) { is_expected.to eq DateTime.parse("2017-06-12T17:36:58") }
         end
         describe "and it is chunked" do
           let(:manifest_xml) { File.read(File.expand_path("../../fixtures/content_manifest.xml", __FILE__)) }
           before do
             stub_request(:head, url).to_return(status: 404)
             stub_request(:head, manifest_url)
+              .to_return(headers: {
+                           "Last-Modified"=>"2017-06-26T16:38:42",
+                         })
             stub_request(:get, manifest_url).to_return(body: manifest_xml)
           end
           it { is_expected.to be_a described_class }
           its(:md5) { is_expected.to eq "164e9aee34c0c42915716e11d5d539b5" }
           its(:size) { is_expected.to eq 4227858432 }
           its(:content_type) { is_expected.to eq "application/octet-stream" }
+          its(:modified) { is_expected.to eq DateTime.parse("2017-06-26T16:38:42") }
           it { is_expected.to be_chunked }
         end
       end
@@ -153,7 +169,7 @@ module Duracloud
               .with(headers: {'x-dura-meta-creator'=>'testuser'})
           }
           it "updates the properties" do
-            subject.properties.creator = "testuser"
+            subject.properties.x_dura_meta_creator = "testuser"
             subject.save
           end
         end
@@ -199,7 +215,6 @@ module Duracloud
                                'Content-MD5'=>'08a008a01d498c404b0c30852b39d3b8'})
       end
       specify {
-        pending "Research Webmock problem with return headers"
         content = Content.find(space_id: "foo", content_id: "bar")
         expect(content.properties.x_dura_meta_creator).to eq('testuser')
       }

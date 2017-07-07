@@ -34,6 +34,7 @@ module Duracloud
       self.properties = manifest.properties.dup
       self.content_type = manifest.source.content_type
       self.size = manifest.source.size
+      self.modified = manifest.content.modified
     end
 
   end

@@ -7,7 +7,6 @@ module Duracloud
   # Encapsulates Duracloud "properties" which are transmitted via HTTP headers.
   #
   class Properties < Hashie::Mash
-    include Hashie::Extensions::IgnoreUndeclared
 
     PREFIX = "x-dura-meta-".freeze
     PREFIX_RE = /\A#{PREFIX}/i
@@ -16,7 +15,12 @@ module Duracloud
     # @param prop [String] the property name
     # @return [Boolean]
     def self.property?(prop)
-      !!( PREFIX_RE =~ prop )
+      !!( PREFIX_RE =~ prop.to_s )
+    end
+
+    def initialize(source = nil, default = nil, &block)
+      source.select! { |k, v| property?(k) } if source
+      super
     end
 
     def property?(prop)

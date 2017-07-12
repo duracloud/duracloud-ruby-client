@@ -53,8 +53,8 @@ EOS
         before {
           stub_request(:head, url)
             .to_return(headers: {
-                         "X-Dura-Meta-Space-Count"=>"1000+",
-                         "X-Dura-Meta-Space-Created"=>"2017-05-18T20:03:18",
+                         "x-dura-meta-space-count"=>"1000+",
+                         "x-dura-meta-space-created"=>"2017-05-18T20:03:18",
                        })
         }
         it { is_expected.to be_a(Space) }
@@ -137,8 +137,8 @@ EOS
                      })
         stub_request(:head, url)
           .to_return(headers: {
-                       'X-Dura-Meta-Space-Count'=>'3',
-                       'X-Dura-Meta-Space-Created'=>'2016-04-05T17:59:11'
+                       'x-dura-meta-space-count'=>'3',
+                       'x-dura-meta-space-created'=>'2016-04-05T17:59:11'
                      })
       }
       describe "class methods" do

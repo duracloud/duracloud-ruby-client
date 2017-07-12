@@ -29,7 +29,7 @@ module Duracloud
 
     # @api private
     def convert_key(key)
-      force_ascii(key.to_s.gsub(/_/, '-').downcase)
+      force_ascii(key)
     end
 
     # @api private

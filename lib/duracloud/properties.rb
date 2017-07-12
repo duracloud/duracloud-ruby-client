@@ -9,13 +9,12 @@ module Duracloud
   class Properties < Hashie::Mash
 
     PREFIX = "x-dura-meta-".freeze
-    PREFIX_RE = /\A#{PREFIX}/i
 
     # Is the property name valid?
     # @param prop [String] the property name
     # @return [Boolean]
     def self.property?(prop)
-      !!( PREFIX_RE =~ prop.to_s )
+      prop.to_s.start_with?(PREFIX)
     end
 
     def initialize(source = nil, default = nil, &block)
@@ -25,11 +24,6 @@ module Duracloud
 
     def property?(prop)
       self.class.property?(prop)
-    end
-
-    # @api private
-    def convert_key(key)
-      force_ascii(key)
     end
 
     # @api private

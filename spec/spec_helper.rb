@@ -4,6 +4,18 @@ require "webmock/rspec"
 
 WebMock.disable_net_connect!(allow_localhost: true)
 
+# Monkey-patches WebMock to not alter header names
+WebMock::Util::Headers.class_eval do
+  def self.normalize_headers(headers)
+    return nil unless headers
+    headers.each do |name, value|
+      if value.is_a?(Array) && value.size == 1
+        headers[name] = value.first
+      end
+    end
+  end
+end
+
 Duracloud::Client.configure do |config|
   config.host = "example.com"
   config.user = "testuser"

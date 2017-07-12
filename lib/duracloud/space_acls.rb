@@ -6,18 +6,15 @@ module Duracloud
 
     ACL_PREFIX = (PREFIX + "acl-").freeze
 
-    def self.property?(prop)
-      space_acl?(prop)
-    end
-
     attr_reader :space
 
     def initialize(space)
-      super()
       @space = space
       if space.persisted?
         response = Client.get_space_acls(space.space_id, **query)
-        update filter(response.headers)
+        super(response.headers)
+      else
+        super()
       end
     end
 

@@ -141,16 +141,18 @@ module Duracloud
 
     # Return the number of items in the space
     # @return [Fixnum] the number of items
+    # @note If the count is over 1000, DuraCloud sets the
+    #   x-dura-meta-space-count header to "1000+".
+    #   This method will in that case return 1000, indicating
+    #   that the exact count must be retrieved by other means.
     def count
-      properties.space_count.to_i
+      properties["x-dura-meta-space-count"].to_i
     end
 
     # Return the creation date of the space, if persisted, or nil.
     # @return [DateTime] the date
     def created
-      if space_created = properties.space_created
-        DateTime.parse(space_created)
-      end
+      DateTime.parse(properties["x-dura-meta-space-created"]) rescue nil
     end
 
     # Find a content item in the space

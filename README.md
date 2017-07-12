@@ -192,13 +192,13 @@ D, [2016-04-29T18:31:16.975749 #32379] DEBUG -- : Duracloud::Client HEAD https:/
 >> content.properties
  => #<Duracloud::ContentProperties x-dura-meta-owner="ellen@example.com">
 
->> content.properties.creator = "bob@example.com"
+>> content.properties["x-dura-meta-creator"] = "bob@example.com"
 >> content.save
 D, [2016-04-29T18:31:52.770195 #32379] DEBUG -- : Duracloud::Client POST https://foo.duracloud.org/durastore/rest-api-testing/foo3 200 OK
 I, [2016-04-29T18:31:52.770293 #32379]  INFO -- : Content foo3 updated successfully
  => true
 
->> content.properties.creator
+>> content.properties["x-dura-meta-creator"]
 D, [2016-04-29T18:32:06.465928 #32379] DEBUG -- : Duracloud::Client HEAD https://foo.duracloud.org/durastore/rest-api-testing/foo3 200 OK
  => "bob@example.com"
 ```     

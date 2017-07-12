@@ -46,7 +46,7 @@ module Duracloud
     end
 
     attr_accessor :space_id, :content_id, :store_id,
-                  :body, :md5, :content_type, :size
+                  :body, :md5, :content_type, :size, :modified
     alias_method :id, :content_id
     validates_presence_of :space_id, :content_id
 
@@ -168,6 +168,7 @@ module Duracloud
       self.properties = response.headers
       self.content_type = response.content_type
       self.size = response.size
+      self.modified = response.modified
     end
 
     def do_delete

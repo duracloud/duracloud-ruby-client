@@ -1,4 +1,5 @@
 require "forwardable"
+require "date"
 
 module Duracloud
   class Response
@@ -42,6 +43,10 @@ module Duracloud
 
     def size
       header["content-length"].first.to_i rescue nil
+    end
+
+    def modified
+      DateTime.parse(header["last-modified"].first) rescue nil
     end
   end
 end

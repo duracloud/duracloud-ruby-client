@@ -146,13 +146,13 @@ module Duracloud
     #   This method will in that case return 1000, indicating
     #   that the exact count must be retrieved by other means.
     def count
-      properties.x_dura_meta_space_count.to_i
+      properties["x-dura-meta-space-count"].to_i
     end
 
     # Return the creation date of the space, if persisted, or nil.
     # @return [DateTime] the date
     def created
-      DateTime.parse(properties.x_dura_meta_space_created) rescue nil
+      DateTime.parse(properties["x-dura-meta-space-created"]) rescue nil
     end
 
     # Find a content item in the space

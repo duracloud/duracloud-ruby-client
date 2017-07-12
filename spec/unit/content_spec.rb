@@ -169,7 +169,7 @@ module Duracloud
               .with(headers: {'x-dura-meta-creator'=>'testuser'})
           }
           it "updates the properties" do
-            subject.properties.x_dura_meta_creator = "testuser"
+            subject.properties["x-dura-meta-creator"] = "testuser"
             subject.save
           end
         end
@@ -216,7 +216,8 @@ module Duracloud
       end
       specify {
         content = Content.find(space_id: "foo", content_id: "bar")
-        expect(content.properties.x_dura_meta_creator).to eq('testuser')
+        puts content.properties.to_h
+        expect(content.properties["x-dura-meta-creator"]).to eq('testuser')
       }
     end
 

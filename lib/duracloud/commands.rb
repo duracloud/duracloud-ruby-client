@@ -5,6 +5,10 @@ module Duracloud
       SyncValidation.call(space_id: space_id, store_id: store_id, content_dir: content_dir)
     end
 
+    def check_missing
+      SyncValidation.check_missing(space_id: space_id, store_id: store_id, infile: infile)
+    end
+
     def manifest
       Manifest.download(space_id, store_id, format: format) do |chunk|
         print chunk

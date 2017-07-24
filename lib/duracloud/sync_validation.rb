@@ -7,13 +7,45 @@ module Duracloud
     include ActiveModel::Model
 
     TWO_SPACES = '  '
+
     MD5_CSV_OPTS = { col_sep: TWO_SPACES }.freeze
     MANIFEST_CSV_OPTS = { col_sep: "\t", headers: true, return_headers: false }.freeze
+    CHECK_CSV_OPTS = { col_sep: "\t" }
+
+    MISSING = "MISSING"
+    CHANGED = "CHANGED"
+    FOUND   = "FOUND"
 
     attr_accessor :space_id, :content_dir, :store_id
 
-    def self.call(*args)
-      new(*args).call
+    def self.call(**kwargs)
+      new(**kwargs).call
+    end
+
+    def self.check_missing(**kwargs)
+      infile = kwargs.delete(:infile)
+      new(**kwargs).check_missing(infile)
+    end
+
+    def check(content_id:, md5: nil)
+      Duracloud::Content.exist?(
+        space_id: space_id,
+        store_id: store_id,
+        content_id: content_id,
+        md5: md5
+      ) ? FOUND : MISSING
+    rescue MessageDigestError => e
+      CHANGED
+    end
+
+    def check_missing(infile)
+      CSV($stdout, CHECK_CSV_OPTS) do |output|
+        CSV.foreach(infile, col_sep: "\t") do |old_status, md5, content_id|
+          next unless old_status == MISSING
+          status = check(content_id: content_id, md5: md5)
+          output << [ status, md5, content_id ]
+        end
+      end
     end
 
     def call
@@ -39,19 +71,16 @@ module Duracloud
             when 0
               true
             when 1, 2
-              failures = []
-              CSV.foreach(audit.path, MD5_CSV_OPTS) do |md5, path|
-                content_id = path.sub(/^\.\//, "")
-                begin
-                  if !Duracloud::Content.exist?(space_id: space_id, store_id: store_id, content_id: content_id, md5: md5)
-                    failures << [ "MISSING", md5, content_id ].join("\t")
-                  end
-                rescue MessageDigestError => e
-                  failures << [ "CHANGED", md5, content_id ].join("\t")
+              passed = true
+              CSV($stdout, CHECK_CSV_OPTS) do |output|
+                CSV.foreach(audit.path, MD5_CSV_OPTS) do |md5, path|
+                  content_id = path.sub(/^\.\//, "")
+                  status = check(content_id: content_id, md5: md5)
+                  passed &&= ( status == FOUND )
+                  output << [ status, md5, content_id ]
                 end
               end
-              STDOUT.puts failures
-              failures.empty?
+              passed
             when 64
               raise Error, "md5deep user error."
             when 128

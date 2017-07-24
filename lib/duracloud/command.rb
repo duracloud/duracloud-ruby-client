@@ -13,7 +13,7 @@ module Duracloud
     attr_accessor :command, :user, :password, :host, :port,
                   :space_id, :store_id, :content_id,
                   :content_type, :md5,
-                  :content_dir, :format,
+                  :content_dir, :format, :infile
                   :logging
 
     def self.error!(reason)
@@ -87,6 +87,11 @@ module Duracloud
         opts.on("-d", "--content-dir CONTENT_DIR",
                 "Local content directory") do |v|
           options[:content_dir] = v
+        end
+
+        opts.on("-f", "--infile FILE",
+                "Input file") do |v|
+          options[:infile] = v
         end
       end
 

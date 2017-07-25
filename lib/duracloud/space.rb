@@ -196,7 +196,7 @@ module Duracloud
       Enumerator.new do |yielder|
         num = 0
         marker = start_after
-        while num < count
+        while num < count || count == 1000
           q = query.merge(prefix: prefix, maxResults: MAX_RESULTS, marker: marker)
           response = Client.get_space(space_id, **q)
           xml = Nokogiri::XML(response.body)

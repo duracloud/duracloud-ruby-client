@@ -216,7 +216,6 @@ module Duracloud
       end
       specify {
         content = Content.find(space_id: "foo", content_id: "bar")
-        puts content.properties.to_h
         expect(content.properties["x-dura-meta-creator"]).to eq('testuser')
       }
     end

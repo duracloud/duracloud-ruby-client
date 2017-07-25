@@ -32,7 +32,7 @@ module Duracloud
     private
 
     def handle_response(response)
-      logger.debug([self.class.to_s, response.request_method, response.url,
+      logger.debug([self.class.to_s, response.request_method, response.url, response.request_query,
                     response.status, response.reason].join(' '))
       if response.error?
         ErrorHandler.call(response)

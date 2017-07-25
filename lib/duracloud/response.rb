@@ -13,6 +13,7 @@ module Duracloud
 
     def_delegator :header, :request_uri, :url
     def_delegator :header, :request_method
+    def_delegator :header, :request_query
 
     def initialize(original_response)
       @original_response = original_response

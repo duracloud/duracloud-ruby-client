@@ -103,6 +103,12 @@ D, [2016-04-29T12:15:12.593075 #28275] DEBUG -- : Duracloud::Client HEAD https:/
 
 A `Duracloud::NotFoundError` exception is raised if the space does not exist.
 
+NOTE: When the object count in a space exceeds 1000, Duracloud returns "1000+" as the count. Ruby's integer coercion `to_i`
+turns that string into the integer 1000.  Getting an exact count above 1000 requires (on the client side) enumerating the content_ids
+(below, fixed in v0.7.2 when count is >= 1000) which can take a long time for a space with a lot of content items,
+since a maxiumum of 1000 ids can be retrived at one time. If an up-to-the-minute
+count is not required, the storage report for the space (not yet implemented in this library) shows an exact count on a daily basis.
+
 #### Enumerate the content IDs of the space
 
 ```
@@ -322,7 +328,8 @@ D, [2016-05-19T15:39:33.538448 #29974] DEBUG -- : Duracloud::Client GET https://
 
 *New in version 0.6.0*
 
-The `bin/` directory of the gem now includes an executable `duracloud`.  Use `-h/--help` to display usage.  If the gem was installed with `bundler` you may need to run `bundle exec bin/duracloud`.
+The `bin/` directory of the gem now includes an executable `duracloud`.  Use `-h/--help` to display usage.
+If the gem was installed with `bundler` you may need to run `bundle exec bin/duracloud`.
 
 ## Versioning
 

@@ -2,23 +2,34 @@ require 'optparse'
 require 'active_model'
 
 module Duracloud
-  class Command
+  class CLI
     include ActiveModel::Model
-    include Commands
 
-    COMMANDS = Commands.public_instance_methods.map(&:to_s)
-    USAGE = "Usage: duracloud [#{COMMANDS.join('|')}] [options]"
-    HELP = "Type 'duracloud --help' for usage."
+    COMMANDS = %w( sync validate manifest properties )
+
+    USAGE = <<-EOS
+Usage: duracloud [COMMAND] [options]
+
+Commands:
+    #{COMMANDS.sort.join("\n    ")}
+
+Options:
+EOS
+    HELP = "Type 'duracloud -h/--help' for usage."
 
     attr_accessor :command, :user, :password, :host, :port,
                   :space_id, :store_id, :content_id,
                   :content_type, :md5,
-                  :content_dir, :format,
+                  :content_dir, :format, :infile,
                   :logging
 
-    def self.error!(reason)
-      STDERR.puts reason
-      STDERR.puts HELP
+    validates_presence_of :space_id, message: "-s/--space-id option is required."
+
+    def self.error!(exception)
+      $stderr.puts exception.message
+      if [ CommandError, OptionParser::ParseError ].include?(exception.class)
+        $stderr.puts HELP
+      end
       exit(false)
     end
 
@@ -88,27 +99,47 @@ module Duracloud
                 "Local content directory") do |v|
           options[:content_dir] = v
         end
+
+        opts.on("-f", "--infile FILE",
+                "Input file") do |v|
+          options[:infile] = v
+        end
       end
 
       command = args.shift if COMMANDS.include?(args.first)
       parser.parse!(args)
 
-      new(options).execute(command)
-    rescue CommandError, OptionParser::ParseError => e
-      error!(e.message)
+      cli = new(options)
+      if cli.invalid?
+        message = cli.errors.map { |k, v| "ERROR: #{v}" }.join("\n")
+        raise CommandError, message
+      end
+      cli.execute(command)
+    rescue => e
+      error!(e)
     end
 
     def execute(command)
-      unless COMMANDS.include?(command)
-        raise CommandError, "Invalid command: #{command}."
-      end
-      begin
-        configure_client
-        send(command)
-      rescue Error => e
-        STDERR.puts e.message
-        exit(false)
-      end
+      configure_client
+      send(command).call(self)
+    end
+
+    protected
+
+    def sync
+      Commands::Sync
+    end
+
+    def validate
+      Commands::Validate
+    end
+
+    def manifest
+      Commands::DownloadManifest
+    end
+
+    def properties
+      Commands::GetProperties
     end
 
     private
@@ -126,3 +157,5 @@ module Duracloud
 
   end
 end
+
+Dir[File.expand_path("../commands/*.rb", __FILE__)].each { |m| require m }

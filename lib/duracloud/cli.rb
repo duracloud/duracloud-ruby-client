@@ -5,7 +5,7 @@ module Duracloud
   class CLI
     include ActiveModel::Model
 
-    COMMANDS = %w( sync validate manifest properties )
+    COMMANDS = %w( sync validate manifest properties storage )
 
     USAGE = <<-EOS
 Usage: duracloud [COMMAND] [options]
@@ -23,7 +23,8 @@ EOS
                   :content_dir, :format, :infile,
                   :logging
 
-    validates_presence_of :space_id, message: "-s/--space-id option is required."
+    validates_presence_of :space_id, message: "-s/--space-id option is required.", unless: "command == 'storage'"
+    validates_inclusion_of :command, in: COMMANDS
 
     def self.print_version
       puts "duracloud-client #{Duracloud::VERSION}"
@@ -120,22 +121,26 @@ EOS
       command = args.shift if COMMANDS.include?(args.first)
       parser.parse!(args)
 
-      cli = new(options)
+      cli = new(options.merge(command: command))
       if cli.invalid?
         message = cli.errors.map { |k, v| "ERROR: #{v}" }.join("\n")
         raise CommandError, message
       end
-      cli.execute(command)
+      cli.execute
     rescue => e
       error!(e)
     end
 
-    def execute(command)
+    def execute
       configure_client
       send(command).call(self)
     end
 
     protected
+
+    def storage
+      Commands::GetStorageReport
+    end
 
     def sync
       Commands::Sync

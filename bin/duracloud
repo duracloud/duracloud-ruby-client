@@ -2,4 +2,4 @@
 
 require 'duracloud'
 
-Duracloud::Command.call(*ARGV)
+Duracloud::CLI.call(*ARGV)

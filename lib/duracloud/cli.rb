@@ -25,6 +25,10 @@ EOS
 
     validates_presence_of :space_id, message: "-s/--space-id option is required."
 
+    def self.print_version
+      puts "duracloud-client #{Duracloud::VERSION}"
+    end
+
     def self.error!(exception)
       $stderr.puts exception.message
       if [ CommandError, OptionParser::ParseError ].include?(exception.class)
@@ -41,6 +45,7 @@ EOS
 
         opts.on("-h", "--help",
                 "Prints help") do
+          print_version
           puts opts
           exit
         end
@@ -103,6 +108,12 @@ EOS
         opts.on("-f", "--infile FILE",
                 "Input file") do |v|
           options[:infile] = v
+        end
+
+        opts.on("-v", "--version",
+                "Print version and exit") do |v|
+          print_version
+          exit
         end
       end
 

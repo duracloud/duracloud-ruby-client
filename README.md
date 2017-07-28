@@ -140,11 +140,24 @@ Assumptions:
 Process:
 - The space manifest is downloaded from DuraCloud and converted to the expected input format for `md5deep` (two columns: md5 hash and file path, separated by two spaces).
 - `md5deep` is run against the content directory in "non-matching" mode (-X) with the converted manifest as the list of "known hashes".
-- Non-matching files from the `md5deep` run are re-checked individually by calling `Duracloud::Content.exist?`. This pass will account for content sync after `md5deep` started as well as files that have been chunked in DuraCloud.
+- Non-matching files from the `md5deep` run are re-checked individually by calling `Duracloud::Content.exist?`.
+This pass will account for content sync after `md5deep` started as well as files that have been chunked in DuraCloud.
+Results of this re-check are printed to STDOUT (or, if using the `:work_dir` option, below, to a file).
 
 ```ruby
 Duracloud::SyncValidation.call(space_id: 'foo', content_dir: '/var/foo/bar')
 ```
+
+*Added in version 0.9.0* - `:work_dir` option to specify existing directory in which to write validation files. The default behavior is to
+create a temporary directory which is deleted on completion of the process. If `:work_dir` is specified, no cleanup is performed.
+
+Files created in work directory:
+- `{SPACE_ID}-manifest.tsv` (DuraCloud manifest as downloaded)
+- `{SPACE_ID}-md5.txt` (Munged manifest for md5deep)
+- `{SPACE_ID}-audit.txt` (Output of md5deep, empty if all files match)
+- `{SPACE_ID}-recheck.txt` (Out of audit recheck, if necessary)
+
+*Added in version 0.9.0* - `Duracloud::FastSyncValidation`. This variant of sync validation does not compute local hashes but instead compares the local file list (generated with `find`) to the list of content IDs in the space manifest. Local misses are rechecked as in `SyncValidation` (but without MD5 comparison).
 
 ### Content
 

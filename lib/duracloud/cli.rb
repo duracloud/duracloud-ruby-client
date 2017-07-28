@@ -20,7 +20,7 @@ EOS
     attr_accessor :command, :user, :password, :host, :port,
                   :space_id, :store_id, :content_id,
                   :content_type, :md5,
-                  :content_dir, :format, :infile,
+                  :content_dir, :format, :infile, :work_dir,
                   :logging
 
     validates_presence_of :space_id, message: "-s/--space-id option is required.", unless: "command == 'storage'"
@@ -101,7 +101,7 @@ EOS
           options[:format] = Manifest::BAGIT_FORMAT
         end
 
-        opts.on("-d", "--content-dir CONTENT_DIR",
+        opts.on("-d", "--content-dir DIR",
                 "Local content directory") do |v|
           options[:content_dir] = v
         end
@@ -115,6 +115,11 @@ EOS
                 "Print version and exit") do |v|
           print_version
           exit
+        end
+
+        opts.on("-w", "--work-dir DIR",
+                "Working directory") do |v|
+          options[:work_dir] = v
         end
       end
 

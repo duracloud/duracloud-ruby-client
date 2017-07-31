@@ -15,20 +15,10 @@ module Duracloud
     CHANGED = "CHANGED"
     FOUND   = "FOUND"
 
-    attr_accessor :space_id, :content_dir, :store_id, :work_dir, :fast
+    attr_accessor :space_id, :content_dir, :store_id, :work_dir, :prefix
 
     def self.call(*args)
       new(*args).call
-    end
-
-    def in_work_dir
-      if work_dir
-        FileUtils.cd(work_dir) { yield }
-      else
-        Dir.mktmpdir("#{space_id}-validation-") do |tmpdir|
-          FileUtils.cd(tmpdir) { yield }
-        end
-      end
     end
 
     def call
@@ -45,12 +35,20 @@ module Duracloud
           manifest.write(chunk)
         end
       end
+      # if prefix
+      #   system("sed -n -r -i.orig -e 'p/\t#{prefix}/' #{manifest_filename}")
+      # end
     end
 
     def convert_manifest
       File.open(converted_manifest_filename, "w") do |f|
         CSV.foreach(manifest_filename, MANIFEST_CSV_OPTS) do |row|
-          f.puts [ row[2], row[1] ].join(TWO_SPACES)
+          content_id, md5 = row[1], row[2]
+          if prefix
+            next unless content_id.start_with?(prefix)
+            content_id.sub!(/\A#{prefix}/, "")
+          end
+          f.puts [ md5, content_id ].join(TWO_SPACES)
         end
       end
     end
@@ -91,6 +89,19 @@ module Duracloud
       end
     end
 
+    def in_work_dir
+      if work_dir
+        unless Dir.exist?(work_dir)
+          FileUtils.mkdir_p(work_dir)
+        end
+        FileUtils.cd(work_dir) { yield }
+      else
+        Dir.mktmpdir("#{space_id}-validation-") do |tmpdir|
+          FileUtils.cd(tmpdir) { yield }
+        end
+      end
+    end
+
     def recheck_file
       if work_dir
         CSV.open(recheck_filename, "w", col_sep: "\t") { |csv| yield(csv) }
@@ -115,18 +126,18 @@ module Duracloud
     def do_recheck
       Enumerator.new do |e|
         CSV.foreach(audit_filename, MD5_CSV_OPTS) do |md5, path|
-          content_id = path.sub(/^\.\//, "")
+          content_id = path.sub(/^\.\//, prefix || "")
           e << check(content_id, md5)
         end
       end
     end
 
-    def prefix
+    def filename_prefix
       space_id
     end
 
     def filename(suffix)
-      [ prefix, suffix ].join("-")
+      [ filename_prefix, suffix ].join("-")
     end
 
     def manifest_filename

@@ -14,6 +14,7 @@ module Duracloud
   autoload :ContentManifest, "duracloud/content_manifest"
   autoload :DurastoreRequest, "duracloud/durastore_request"
   autoload :ErrorHandler, "duracloud/error_handler"
+  autoload :FastSyncValidation, "duracloud/fast_sync_validation"
   autoload :HasProperties, "duracloud/has_properties"
   autoload :Manifest, "duracloud/manifest"
   autoload :Persistence, "duracloud/persistence"

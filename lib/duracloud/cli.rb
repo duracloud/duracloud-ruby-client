@@ -20,7 +20,7 @@ EOS
     attr_accessor :command, :user, :password, :host, :port,
                   :space_id, :store_id, :content_id,
                   :content_type, :md5,
-                  :content_dir, :format, :infile, :work_dir,
+                  :content_dir, :format, :infile, :work_dir, :fast,
                   :logging
 
     validates_presence_of :space_id, message: "-s/--space-id option is required.", unless: "command == 'storage'"
@@ -120,6 +120,11 @@ EOS
         opts.on("-w", "--work-dir DIR",
                 "Working directory") do |v|
           options[:work_dir] = v
+        end
+
+        opts.on("-F", "--[no-]fast",
+                "Use fast audit for sync validation") do |v|
+          options[:fast] = v
         end
       end
 

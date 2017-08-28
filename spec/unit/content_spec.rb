@@ -226,8 +226,8 @@ module Duracloud
       before do
         stub_request(:put, target)
           .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
-        stub_request(:head, target).to_return(status: 404)
-        stub_request(:head, "#{target}.dura-manifest").to_return(status: 404)
+        allow(described_class).to receive(:exist?).with(space_id: "spam", content_id: "eggs") { false }
+        stub_request(:head, target).to_return(status: 200)
       end
       specify {
         copied = subject.copy(space_id: "spam", content_id: "eggs")
@@ -237,17 +237,16 @@ module Duracloud
         target = "https://example.com/durastore/foo/eggs"
         stub1 = stub_request(:put, target)
                 .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
-        stub2 = stub_request(:head, target).to_return(status: 404)
-        stub3 = stub_request(:head, "#{target}.dura-manifest").to_return(status: 404)
+        allow(described_class).to receive(:exist?).with(space_id: "foo", content_id: "eggs") { false }
+        stub2 = stub_request(:head, target).to_return(status: 200)
         copied = subject.copy(content_id: "eggs")
         expect(copied).to be_a(Content)
         expect(stub1).to have_been_requested
         expect(stub2).to have_been_requested
-        expect(stub3).to have_been_requested
       end
       describe "when the target exists" do
         before do
-          stub_request(:head, target).to_return(status: 200)
+          allow(described_class).to receive(:exist?).with(space_id: "spam", content_id: "eggs") { true }
         end
         describe "and force argument is true" do
           it "overwrites the target" do
@@ -267,16 +266,15 @@ module Duracloud
       subject { Content.new(space_id: "foo", content_id: "bar") }
       describe "when copy succeeds" do
         it "deletes the source" do
+          allow(described_class).to receive(:exist?).with(space_id: "spam", content_id: "eggs") { false }
           stub1 = stub_request(:put, target)
                   .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
-          stub2 = stub_request(:head, target).to_return(status: 404)
-          stub2a = stub_request(:head, "#{target}.dura-manifest").to_return(status: 404)
+          stub2 = stub_request(:head, target).to_return(status: 200)
           stub3 = stub_request(:delete, "https://example.com/durastore/foo/bar")
           moved = subject.move(space_id: "spam", content_id: "eggs")
           expect(moved).to be_a(Content)
           expect(stub1).to have_been_requested
           expect(stub2).to have_been_requested
-          expect(stub2a).to have_been_requested
           expect(stub3).to have_been_requested
         end
       end
@@ -289,6 +287,7 @@ module Duracloud
       end
       describe "when target exists" do
         before do
+        allow(described_class).to receive(:exist?).with(space_id: "spam", content_id: "eggs") { false }
           stub_request(:put, target)
             .with(headers: {'x-dura-meta-copy-source'=>'foo/bar'})
           stub_request(:delete, "https://example.com/durastore/foo/bar")

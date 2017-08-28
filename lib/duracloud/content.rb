@@ -79,6 +79,7 @@ module Duracloud
 
     # @return [Duracloud::Content] the copied content
     #   The current instance still represents the original content.
+    # @raise [Duracloud::Error]
     def copy(**args)
       dest = args.except(:force)
       dest[:space_id]   ||= space_id
@@ -89,11 +90,12 @@ module Duracloud
       end
       options = { storeID: dest[:store_id], headers: copy_headers }
       Client.copy_content(dest[:space_id], dest[:content_id], **options)
-      Content.new(dest.merge(md5: md5))
+      Content.find(dest.merge(md5: md5))
     end
 
     # @return [Duracloud::Content] the moved content
     #   The current instance still represents the deleted content.
+    # @raise [Duracloud::Error]
     def move(**args)
       copied = copy(**args)
       delete

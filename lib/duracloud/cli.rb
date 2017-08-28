@@ -5,7 +5,7 @@ module Duracloud
   class CLI
     include ActiveModel::Model
 
-    COMMANDS = %w( sync validate manifest properties storage )
+    COMMANDS = %w( sync validate manifest properties storage ids items count )
 
     USAGE = <<-EOS
 Usage: duracloud [COMMAND] [options]
@@ -19,7 +19,7 @@ EOS
 
     attr_accessor :command, :user, :password, :host, :port,
                   :space_id, :store_id, :content_id,
-                  :content_type, :md5,
+                  :content_type, :md5, :prefix,
                   :content_dir, :format, :infile, :work_dir, :fast,
                   :logging
 
@@ -122,9 +122,14 @@ EOS
           options[:work_dir] = v
         end
 
-        opts.on("-F", "--[no-]fast",
+        opts.on("-F", "--[no-]fast-audit",
                 "Use fast audit for sync validation") do |v|
           options[:fast] = v
+        end
+
+        opts.on("-a", "--prefix PREFIX",
+                "Content prefix") do |v|
+          options[:prefix] = v
         end
       end
 
@@ -148,6 +153,10 @@ EOS
 
     protected
 
+    def count
+      Commands::Count
+    end
+
     def storage
       Commands::GetStorageReport
     end
@@ -166,6 +175,14 @@ EOS
 
     def properties
       Commands::GetProperties
+    end
+
+    def ids
+      Commands::ListContentIds
+    end
+
+    def items
+      Commands::ListItems
     end
 
     private

@@ -5,7 +5,7 @@ module Duracloud
   class CLI
     include ActiveModel::Model
 
-    COMMANDS = %w( sync validate manifest properties storage ids items count )
+    COMMANDS = %w( sync validate manifest properties storage ids items count copy )
 
     USAGE = <<-EOS
 Usage: duracloud [COMMAND] [options]
@@ -21,6 +21,7 @@ EOS
                   :content_dir,
                   :content_id,
                   :content_type,
+                  :dryrun,
                   :fast,
                   :format,
                   :host,
@@ -32,6 +33,7 @@ EOS
                   :prefix,
                   :space_id,
                   :store_id,
+                  :to,
                   :user,
                   :work_dir
 
@@ -118,6 +120,11 @@ EOS
           options[:content_dir] = v
         end
 
+        opts.on("--[no-]dryrun",
+                "Dry run: no changes in DuraCloud")  do |v|
+          options[:dryrun] = v
+        end
+
         opts.on("-f", "--infile FILE",
                 "Input file") do |v|
           options[:infile] = v
@@ -140,8 +147,13 @@ EOS
         end
 
         opts.on("-a", "--prefix PREFIX",
-                "Content prefix") do |v|
+                "Content ID prefix") do |v|
           options[:prefix] = v
+        end
+
+        opts.on("--to SPACE_ID",
+                "Copy/move destination space") do |v|
+          options[:to] = v
         end
       end
 
@@ -164,6 +176,10 @@ EOS
     end
 
     protected
+
+    def copy
+      Commands::CopyContent
+    end
 
     def count
       Commands::Count

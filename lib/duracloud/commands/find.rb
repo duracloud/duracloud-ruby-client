@@ -5,7 +5,7 @@ module Duracloud::Commands
       delegate_to = if content_id
                       FindItem
                     elsif infile
-                      FindItems
+                      missing ? FindMissingItems : FindItems
                     else
                       FindSpace
                     end

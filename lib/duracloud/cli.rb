@@ -4,8 +4,9 @@ require 'active_model'
 module Duracloud
   class CLI
     include ActiveModel::Model
+    include Commands
 
-    COMMANDS = %w( sync validate manifest properties storage ids items count )
+    COMMANDS = Commands.public_instance_methods.map(&:to_s)
 
     USAGE = <<-EOS
 Usage: duracloud [COMMAND] [options]
@@ -160,41 +161,7 @@ EOS
 
     def execute
       configure_client
-      send(command).call(self)
-    end
-
-    protected
-
-    def count
-      Commands::Count
-    end
-
-    def storage
-      Commands::GetStorageReport
-    end
-
-    def sync
-      Commands::Sync
-    end
-
-    def validate
-      Commands::Validate
-    end
-
-    def manifest
-      Commands::DownloadManifest
-    end
-
-    def properties
-      Commands::GetProperties
-    end
-
-    def ids
-      Commands::ListContentIds
-    end
-
-    def items
-      Commands::ListItems
+      send(command, self)
     end
 
     private
@@ -212,5 +179,3 @@ EOS
 
   end
 end
-
-Dir[File.expand_path("../commands/*.rb", __FILE__)].each { |m| require m }

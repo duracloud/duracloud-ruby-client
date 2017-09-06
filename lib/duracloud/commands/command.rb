@@ -7,5 +7,9 @@ module Duracloud::Commands
       new(cli).call
     end
 
+    def cli
+      __getobj__
+    end
+
   end
 end

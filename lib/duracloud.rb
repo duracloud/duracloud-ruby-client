@@ -8,6 +8,7 @@ module Duracloud
   autoload :ChunkedContent, "duracloud/chunked_content"
   autoload :Client, "duracloud/client"
   autoload :CLI, "duracloud/cli"
+  autoload :Commands, "duracloud/commands"
   autoload :Configuration, "duracloud/configuration"
   autoload :Connection, "duracloud/connection"
   autoload :Content, "duracloud/content"

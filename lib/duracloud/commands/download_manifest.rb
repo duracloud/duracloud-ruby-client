@@ -1,5 +1,3 @@
-require_relative "command"
-
 module Duracloud::Commands
   class DownloadManifest < Command
 

@@ -2,13 +2,14 @@ module Duracloud::Commands
   class GetStorageReport < Command
 
     def call
-      reports = if space_id
-                  Duracloud::StorageReports.by_space(space_id, store_id: store_id)
-                else
-                  Duracloud::StorageReports.by_store(store_id: store_id)
-                end
-      report = reports.last
-      puts report.to_s
+      delegate_to = if space_id
+                      GetStorageReportForSpace
+                    elsif all_spaces
+                      GetStorageReportForAllSpaces
+                    else
+                      GetStorageReportForStore
+                    end
+      delegate_to.call(cli)
     end
 
   end

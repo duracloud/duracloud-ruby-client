@@ -18,7 +18,8 @@ Options:
 EOS
     HELP = "Type 'duracloud -h/--help' for usage."
 
-    attr_accessor :command,
+    attr_accessor :all_spaces,
+                  :command,
                   :content_dir,
                   :content_id,
                   :content_type,
@@ -37,7 +38,7 @@ EOS
                   :user,
                   :work_dir
 
-    validates_presence_of :space_id, message: "-s/--space-id option is required.", unless: "command == 'storage'"
+    validates_presence_of :space_id, message: "-s/--space-id option is required.", unless: "command == 'get_storage_report'"
     validates_inclusion_of :command, in: COMMANDS
 
     def self.error!(exception)

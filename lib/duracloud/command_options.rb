@@ -109,6 +109,10 @@ module Duracloud
         opts.on("-M", "--[no-]missing", "Find missing items") do |v|
           self.missing = v
         end
+
+        opts.on("--[no-]all-spaces", "Get report for all spaces") do |v|
+          self.all_spaces = v
+        end
       end
     end
 

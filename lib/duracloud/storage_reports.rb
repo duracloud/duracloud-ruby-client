@@ -23,7 +23,7 @@ module Duracloud
     end
 
     def self.for_all_spaces_in_a_store(epoch_ms = nil, **query)
-      epoch_ms ||= Time.now.to_i * 1000
+      epoch_ms ||= (Time.now - (3600 * 24)).to_i * 1000
       params = Params.new(query)
       response = Client.get_storage_reports_for_all_spaces_in_a_store(epoch_ms, **params)
       new(response)

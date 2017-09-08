@@ -79,21 +79,30 @@ module Duracloud
 
     # @return [Duracloud::Content] the copied content
     #   The current instance still represents the original content.
+    # @raise [Duracloud::Error]
     def copy(**args)
       dest = args.except(:force)
       dest[:space_id]   ||= space_id
+      dest[:store_id]   ||= store_id
       dest[:content_id] ||= content_id
-      raise CopyError, "Destination is the same as the source." if dest == copy_source
+      if dest == copy_source
+        raise CopyError, "Destination is the same as the source."
+      end
       if !args[:force] && Content.exist?(**dest)
-        raise CopyError, "Destination exists and :false option is false."
+        raise CopyError, "Destination exists and `:force' option is false."
       end
       options = { storeID: dest[:store_id], headers: copy_headers }
-      Client.copy_content(dest[:space_id], dest[:content_id], **options)
+      response = Client.copy_content(dest[:space_id], dest[:content_id], **options)
+      if md5 != response.md5
+        raise CopyError, "Message digest of copy does not match source " \
+                         "(source: #{md5}; destination: #{response.md5})"
+      end
       Content.new(dest.merge(md5: md5))
     end
 
     # @return [Duracloud::Content] the moved content
     #   The current instance still represents the deleted content.
+    # @raise [Duracloud::Error]
     def move(**args)
       copied = copy(**args)
       delete

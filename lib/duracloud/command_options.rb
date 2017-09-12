@@ -113,6 +113,11 @@ module Duracloud
         opts.on("--[no-]all-spaces", "Get report for all spaces") do |v|
           self.all_spaces = v
         end
+
+        opts.on("-t", "--content-type CONTENT_TYPE",
+                "Media type of content to store") do |v|
+          self.content_type = v
+        end
       end
     end
 

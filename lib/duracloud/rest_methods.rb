@@ -130,8 +130,7 @@ module Duracloud
     end
 
     def durastore_content(http_method, space_id, content_id, **options, &block)
-      escaped_content_id = content_id.gsub(/%/, "%25").gsub(/ /, "%20")
-      url = [ space_id, escaped_content_id ].join("/")
+      url = [ space_id, content_id.gsub(/%/, "%25") ].join("/")
       durastore(http_method, url, **options, &block)
     end
 

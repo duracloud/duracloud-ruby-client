@@ -1,3 +1,5 @@
+require 'addressable/uri'
+
 module Duracloud
   class Request
     attr_reader :client, :url, :http_method, :body, :headers, :query
@@ -12,7 +14,7 @@ module Duracloud
     def initialize(client, http_method, url, **options)
       @client      = client
       @http_method = http_method
-      @url         = url
+      @url         = Addressable::URI.parse(url).normalize.to_s
       set_options(options.dup)
     end
 

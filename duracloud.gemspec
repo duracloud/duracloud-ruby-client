@@ -20,6 +20,7 @@ Gem::Specification.new do |spec|
 
   spec.required_ruby_version = ">= 2.2"
 
+  spec.add_dependency "addressable", "~> 2.5"
   spec.add_dependency "hashie", "~> 3.4"
   spec.add_dependency "httpclient", "~> 2.7"
   spec.add_dependency "activemodel", ">= 4.2", "< 6"

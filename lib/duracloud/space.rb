@@ -7,7 +7,10 @@ module Duracloud
   #
   class Space < AbstractEntity
 
-    after_save :reset_acls
+    property :space_id, required: true
+    property :store_id
+
+    alias_method :id, :space_id
 
     # Max size of content item list for one request.
     #   This limit is imposed by Duracloud.
@@ -116,12 +119,6 @@ module Duracloud
         find(*args).manifest
       end
     end
-
-    attr_accessor :space_id, :store_id
-    alias_method :id, :space_id
-
-    after_save :reset_acls
-    before_delete :reset_acls
 
     # @param space_id [String] the space ID
     # @param store_id [String] the store ID (optional)
@@ -249,11 +246,13 @@ module Duracloud
     end
 
     def do_delete
+      reset_acls
       Client.delete_space(id, **query)
     end
 
     def do_save
       persisted? ? update : create
+      reset_acls
     end
 
     def query

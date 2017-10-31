@@ -4,10 +4,14 @@ require 'hashie'
 module Duracloud
   class CommandOptions < Hashie::Mash
 
-    def initialize(*args)
-      super()
+    def self.parse(*args)
+      new.parse(*args)
+    end
+
+    def parse(*args)
       self.command = args.shift if CLI::COMMANDS.include?(args.first)
       parser.parse!(args)
+      to_hash(symbolize_keys: true)
     end
 
     def print_version

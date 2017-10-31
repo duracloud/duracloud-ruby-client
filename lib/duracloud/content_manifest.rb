@@ -1,13 +1,12 @@
 require 'nokogiri'
-require 'active_model'
+require 'hashie'
 
 module Duracloud
-  class ContentManifest
-    include ActiveModel::Model
+  class ContentManifest < Hashie::Dash
 
-    validates_presence_of :space_id, :manifest_id
-
-    attr_accessor :space_id, :manifest_id, :store_id
+    property :space_id, required: true
+    property :manifest_id, required: true
+    property :store_id
 
     def self.find(**kwargs)
       new(**kwargs).tap do |manifest|

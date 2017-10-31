@@ -1,9 +1,8 @@
 require 'optparse'
-require 'active_model'
+require 'hashie'
 
 module Duracloud
-  class CLI
-    include ActiveModel::Model
+  class CLI < Hashie::Dash
     include Commands
 
     COMMANDS = Commands.public_instance_methods.map(&:to_s)
@@ -18,32 +17,29 @@ Options:
 EOS
     HELP = "Type 'duracloud -h/--help' for usage."
 
-    attr_accessor :all_spaces,
-                  :command,
-                  :content_dir,
-                  :content_id,
-                  :content_type,
-                  :fast,
-                  :format,
-                  :host,
-                  :infile,
-                  :logging,
-                  :md5,
-                  :missing,
-                  :password,
-                  :port,
-                  :prefix,
-                  :space_id,
-                  :store_id,
-                  :user,
-                  :work_dir
-
-    validates_presence_of :space_id, message: "-s/--space-id option is required.", unless: "command == 'get_storage_report'"
-    validates_inclusion_of :command, in: COMMANDS, message: "Invalid command"
+    property :all_spaces
+    property :command, required: true
+    property :content_dir
+    property :content_id
+    property :content_type
+    property :fast
+    property :format
+    property :host
+    property :infile
+    property :logging
+    property :md5
+    property :missing
+    property :password
+    property :port
+    property :prefix
+    property :space_id, required: -> { command != "get_storage_report" }, message: "-s/--space-id option is required."
+    property :store_id
+    property :user
+    property :work_dir
 
     def self.error!(exception)
       $stderr.puts exception.message
-      if [ CommandError, OptionParser::ParseError ].include?(exception.class)
+      if [ ArgumentError, CommandError, OptionParser::ParseError ].include?(exception.class)
         $stderr.puts HELP
       end
       exit(false)
@@ -56,13 +52,12 @@ EOS
     end
 
     def initialize(*args)
-      super CommandOptions.new(*args)
+      super CommandOptions.parse(*args)
     end
 
     def execute
-      if invalid?
-        message = errors.map { |k, v| "ERROR: #{v}" }.join("\n")
-        raise CommandError, message
+      unless COMMANDS.include?(command)
+        raise CommandError, "Invalid command: #{command.inspect}."
       end
       configure_client
       send(command, self)

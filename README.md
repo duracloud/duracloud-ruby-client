@@ -283,6 +283,8 @@ D, [2016-04-29T18:29:03.935451 #32379] DEBUG -- : Duracloud::Client HEAD https:/
  => false
 ```
 
+*Added in v0.10.0.pre* `Duracloud::Content.delete` class method.
+
 ### Reports
 
 The audit logs, bit integrity reports and manifests are accessible in their original TSV format and in normalized CSV tables.

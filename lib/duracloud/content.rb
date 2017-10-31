@@ -1,5 +1,3 @@
-require "active_model"
-
 module Duracloud
   #
   # A piece of content in DuraCloud
@@ -12,6 +10,17 @@ module Duracloud
     COPY_SOURCE_HEADER = "x-dura-meta-copy-source"
     COPY_SOURCE_STORE_HEADER = "x-dura-meta-copy-source-store"
     MANIFEST_EXT = ".dura-manifest"
+
+    property :space_id, required: true
+    property :content_id, required: true
+    property :store_id
+    property :body
+    property :md5
+    property :content_type
+    property :size
+    property :modified
+
+    alias_method :id, :content_id
 
     # Does the content exist in DuraCloud?
     # @return [Boolean] whether the content exists.
@@ -54,11 +63,6 @@ module Duracloud
       find(**kwargs).delete
     end
 
-    attr_accessor :space_id, :content_id, :store_id,
-                  :body, :md5, :content_type, :size, :modified
-    alias_method :id, :content_id
-    validates_presence_of :space_id, :content_id
-
     # Return the space associated with this content.
     # @return [Duracloud::Space] the space.
     # @raise [Duracloud::NotFoundError] the space or store does not exist.
@@ -90,7 +94,7 @@ module Duracloud
     #   The current instance still represents the original content.
     # @raise [Duracloud::Error]
     def copy(**args)
-      dest = args.except(:force)
+      dest = args.reject { |k, v| k == :force }
       dest[:space_id]   ||= space_id
       dest[:store_id]   ||= store_id
       dest[:content_id] ||= content_id

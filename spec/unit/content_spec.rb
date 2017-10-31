@@ -201,8 +201,7 @@ module Duracloud
       describe "when found" do
         before { stub_request(:delete, url) }
         it "deletes the content" do
-          subject.delete
-          expect(subject).to be_deleted
+          expect { subject.delete }.to change(subject, :deleted?).from(false).to(true)
         end
       end
     end

@@ -45,6 +45,15 @@ module Duracloud
       new(**kwargs).save
     end
 
+    # Delete content from DuraCloud.
+    # @return [Duraclound::Content] the deleted content.
+    # @raise [Duracloud::NotFoundError] the space, content or store (if given) does not exist.
+    # @raise [Duracloud::MessageDigestError] the provided digest in the :md5 keyword option,
+    #   if given, does not match the stored value.
+    def self.delete(**kwargs)
+      find(**kwargs).delete
+    end
+
     attr_accessor :space_id, :content_id, :store_id,
                   :body, :md5, :content_type, :size, :modified
     alias_method :id, :content_id

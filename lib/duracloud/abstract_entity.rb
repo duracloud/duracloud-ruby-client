@@ -45,7 +45,6 @@ module Duracloud
       @properties ||= Properties.new
     end
 
-
     def load_properties
       run_callbacks :load_properties do
         do_load_properties

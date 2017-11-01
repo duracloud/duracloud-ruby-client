@@ -1,26 +1,30 @@
 module Duracloud
   RSpec.describe CLI do
 
-    subject { described_class.new(**opts) }
+    subject { described_class.new(*opts) }
 
     describe "find item" do
-      let(:opts) { {command: "find", space_id: "foo", content_id: "bar"} }
+      let(:opts) { %w(find -s foo -c bar) }
       specify {
-        expect(Commands::FindItem).to receive(:call).with(subject) { nil }
+        stub = stub_request(:head, "https://example.com/durastore/foo/bar")
+        expect(Commands::FindItem).to receive(:call).with(subject).and_call_original
         subject.execute
+        expect(stub).to have_been_requested
       }
     end
 
     describe "find space" do
-      let(:opts) { {command: "find", space_id: "foo"} }
+      let(:opts) { %w(find -s foo) }
       specify {
-        expect(Commands::FindSpace).to receive(:call).with(subject) { nil }
+        stub = stub_request(:head, "https://example.com/durastore/foo")
+        expect(Commands::FindSpace).to receive(:call).with(subject).and_call_original
         subject.execute
+        expect(stub).to have_been_requested
       }
     end
 
     describe "find items" do
-      let(:opts) { {command: "find", space_id: "foo", infile: "/foo/bar"} }
+      let(:opts) { %w( find -s foo -f /foo/bar ) }
       specify {
         expect(Commands::FindItems).to receive(:call).with(subject) { nil }
         subject.execute
@@ -28,15 +32,17 @@ module Duracloud
     end
 
     describe "count" do
-      let(:opts) { {command: "count", space_id: "foo"} }
+      let(:opts) { %w( count -s foo ) }
       specify {
-        expect(Commands::Count).to receive(:call).with(subject) { nil }
+        stub = stub_request(:head, "https://example.com/durastore/foo")
+        expect(Commands::Count).to receive(:call).with(subject).and_call_original
         subject.execute
+        expect(stub).to have_been_requested
       }
     end
 
     describe "sync" do
-      let(:opts) { {command: "sync", space_id: "foo", content_id: "bar", infile: "foo/bar"} }
+      let(:opts) { %w( sync -s foo -c bar -f /foo/bar ) }
       specify {
         expect(Commands::Sync).to receive(:call).with(subject) { nil }
         subject.execute
@@ -44,7 +50,7 @@ module Duracloud
     end
 
     describe "validate" do
-      let(:opts) { {command: "validate", space_id: "foo", content_dir: "/tmp"} }
+      let(:opts) { %w( validate -s foo -d /tmp ) }
       specify {
         expect(Commands::Validate).to receive(:call).with(subject) { nil }
         subject.execute
@@ -52,7 +58,7 @@ module Duracloud
     end
 
     describe "download_manifest" do
-      let(:opts) { {command: "download_manifest", space_id: "foo"} }
+      let(:opts) { %w( download_manifest -s foo ) }
       specify {
         expect(Commands::DownloadManifest).to receive(:call).with(subject) { nil }
         subject.execute
@@ -60,7 +66,7 @@ module Duracloud
     end
 
     describe "get_storage_report" do
-      let(:opts) { {command: "get_storage_report", space_id: "foo"} }
+      let(:opts) { %w( get_storage_report -s foo ) }
       specify {
         expect(Commands::GetStorageReport).to receive(:call).with(subject) { nil }
         subject.execute
@@ -68,7 +74,7 @@ module Duracloud
     end
 
     describe "list content ids" do
-      let(:opts) { {command: "list_content_ids", space_id: "foo"} }
+      let(:opts) { %w( list_content_ids -s foo ) }
       specify {
         expect(Commands::ListContentIds).to receive(:call).with(subject) { nil }
         subject.execute
@@ -76,9 +82,17 @@ module Duracloud
     end
 
     describe "list items" do
-      let(:opts) { {command: "list_items", space_id: "foo"} }
+      let(:opts) { %w( list_items -s foo ) }
       specify {
         expect(Commands::ListItems).to receive(:call).with(subject) { nil }
+        subject.execute
+      }
+    end
+
+    describe "store" do
+      let(:opts) { %w( store -s foo -c bar -f /foo/bar -t image/jpeg ) }
+      specify {
+        expect(Commands::StoreContent).to receive(:call).with(subject) { nil }
         subject.execute
       }
     end

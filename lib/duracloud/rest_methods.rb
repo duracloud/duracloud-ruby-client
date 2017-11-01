@@ -125,8 +125,9 @@ module Duracloud
 
     private
 
-    def durastore(*args, &block)
-      execute(DurastoreRequest, *args, &block)
+    def durastore(http_method, url_path, **options, &block)
+      url = [ "durastore", url_path ].join("/")
+      execute(http_method, url, **options, &block)
     end
 
     def durastore_content(http_method, space_id, content_id, **options, &block)

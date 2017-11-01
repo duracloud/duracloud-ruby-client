@@ -1,30 +1,21 @@
-require "active_model"
+require 'hashie'
 
 module Duracloud
-  class AbstractEntity
-    include ActiveModel::Model
-    extend ActiveModel::Callbacks
-
-    define_model_callbacks :save, :delete, :load_properties
-    after_save :persisted!
-    after_save :reset_properties
-    after_load_properties :persisted!
-    before_delete :reset_properties
-    after_delete :deleted!
-    after_delete :freeze
+  class AbstractEntity < Hashie::Dash
 
     def save
       raise Error, "Cannot save deleted #{self.class}." if deleted?
-      run_callbacks :save do
-        do_save
-      end
+      do_save
+      persisted!
+      reset_properties
     end
 
     def delete
       raise Error, "Cannot delete, already deleted." if deleted?
-      run_callbacks :delete do
-        do_delete
-      end
+      reset_properties
+      do_delete
+      deleted!
+      freeze
     end
 
     def persisted?
@@ -45,11 +36,9 @@ module Duracloud
       @properties ||= Properties.new
     end
 
-
     def load_properties
-      run_callbacks :load_properties do
-        do_load_properties
-      end
+      do_load_properties
+      persisted!
     end
 
     private

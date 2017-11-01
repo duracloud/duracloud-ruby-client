@@ -33,6 +33,10 @@ module Duracloud
       ListItems.call(cli)
     end
 
+    def store(cli)
+      StoreContent.call(cli)
+    end
+
   end
 end
 

@@ -1,11 +1,10 @@
-require 'active_model'
 require 'tempfile'
 require 'csv'
 require 'fileutils'
+require 'hashie'
 
 module Duracloud
-  class SyncValidation
-    include ActiveModel::Model
+  class SyncValidation < Hashie::Dash
 
     TWO_SPACES = '  '
     MD5_CSV_OPTS = { col_sep: TWO_SPACES }.freeze
@@ -15,7 +14,10 @@ module Duracloud
     CHANGED = "CHANGED"
     FOUND   = "FOUND"
 
-    attr_accessor :space_id, :content_dir, :store_id, :work_dir, :fast
+    property :space_id, required: true
+    property :content_dir, required: true
+    property :store_id
+    property :work_dir
 
     def self.call(*args)
       new(*args).call

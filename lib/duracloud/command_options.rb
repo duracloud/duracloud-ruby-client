@@ -4,10 +4,14 @@ require 'hashie'
 module Duracloud
   class CommandOptions < Hashie::Mash
 
-    def initialize(*args)
-      super()
+    def self.parse(*args)
+      new.parse(*args)
+    end
+
+    def parse(*args)
       self.command = args.shift if CLI::COMMANDS.include?(args.first)
       parser.parse!(args)
+      to_hash(symbolize_keys: true)
     end
 
     def print_version
@@ -112,6 +116,11 @@ module Duracloud
 
         opts.on("--[no-]all-spaces", "Get report for all spaces") do |v|
           self.all_spaces = v
+        end
+
+        opts.on("-t", "--content-type CONTENT_TYPE",
+                "Media type of content to store") do |v|
+          self.content_type = v
         end
       end
     end

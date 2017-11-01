@@ -31,36 +31,21 @@ Option 1. Environment variables
 
 Option 2. Manual configuration
 
-```ruby
-Duracloud::Client.configure do |config|
-  config.host = "foo.duracloud.org"
-  config.user = "bob@example.com"
-  config.password = "s3cret"
-end
-```
+*Changed in v0.10.0* Set attributes on `Duracloud` module instead of using `Duracloud::Client.configure {|config| ...}` block.
 
-```
-> c = Duracloud::Client.new
- => #<Duracloud::Client:0x007fe953a1c630 @config=#<Duracloud::Configuration host="foo.duracloud.org", port=nil, user="bob@example.com">>
- ```
+    Duracloud.host = "foo.duracloud.org"
+    Duracloud.user = "bob@example.com"
+    Duracloud.password = "s3cret"
 
 #### Logging
 
-By default, `Duracloud::Client` logs to `STDERR`.  Use the `logger` config setting to change:
+By default duracloud-client logs to `STDERR`.  Use the `logger` config setting to change:
 
-```ruby
-Duracloud::Client.configure do |config|
-  config.logger = Rails.logger
-end
-```
+    Duracloud.logger = Rails.logger
 
 You can also silence logging:
 
-```ruby
-Duracloud::Client.configure do |config|
-  config.silence_logging! # sets logger device to null device
-end
-```
+    Duracloud.silence_logging! # sets logger device to null device
 
 ### List Storage Providers
 
@@ -81,7 +66,7 @@ end
 
 ```
 >> space = Duracloud::Space.create("rest-api-testing2")
-D, [2016-04-29T12:12:32.641574 #28275] DEBUG -- : Duracloud::Client PUT https://foo.duracloud.org/durastore/rest-api-testing2 201 Created
+D, [2016-04-29T12:12:32.641574 #28275] DEBUG -- : Duracloud::Request PUT https://foo.duracloud.org/durastore/rest-api-testing2 201 Created
  => #<Duracloud::Space space_id="rest-api-testing2", store_id="(default)"> 
 ```
 
@@ -91,7 +76,7 @@ A `Duracloud::BadRequestError` exception is raised if the space ID is invalid (i
 
 ```
 >> space = Duracloud::Space.find("rest-api-testing")
-D, [2016-04-29T12:15:12.593075 #28275] DEBUG -- : Duracloud::Client HEAD https://foo.duracloud.org/durastore/rest-api-testing 200 OK
+D, [2016-04-29T12:15:12.593075 #28275] DEBUG -- : Duracloud::Request HEAD https://foo.duracloud.org/durastore/rest-api-testing 200 OK
  => #<Duracloud::Space space_id="rest-api-testing", store_id="(default)">
  
 >> space.count
@@ -103,11 +88,11 @@ D, [2016-04-29T12:15:12.593075 #28275] DEBUG -- : Duracloud::Client HEAD https:/
 
 A `Duracloud::NotFoundError` exception is raised if the space does not exist.
 
-NOTE: When the object count in a space exceeds 1000, Duracloud returns "1000+" as the count. Ruby's integer coercion `to_i`
+**Note:** When the object count in a space exceeds 1000, Duracloud returns `1000+` as the count. Ruby's integer coercion `to_i`
 turns that string into the integer 1000.  Getting an exact count above 1000 requires (on the client side) enumerating the content_ids
-(below, fixed in v0.7.2 when count is >= 1000) which can take a long time for a space with a lot of content items,
-since a maxiumum of 1000 ids can be retrived at one time. If an up-to-the-minute
-count is not required, the storage report for the space (not yet implemented in this library) shows an exact count on a daily basis.
+(below, fixed in v0.7.2 when count is >= 1000) which can take a long time for a space with a lot of content items
+(a maxiumum of 1000 ids can be retrived at one time). If an up-to-the-minute
+count is not required, the storage report for the space shows an exact count on a daily basis.
 
 #### Enumerate the content IDs of the space
 
@@ -152,10 +137,11 @@ Duracloud::SyncValidation.call(space_id: 'foo', content_dir: '/var/foo/bar')
 create a temporary directory which is deleted on completion of the process. If `:work_dir` is specified, no cleanup is performed.
 
 Files created in work directory:
-- `{SPACE_ID}-manifest.tsv` (DuraCloud manifest as downloaded)
-- `{SPACE_ID}-md5.txt` (Munged manifest for md5deep)
-- `{SPACE_ID}-audit.txt` (Output of md5deep, empty if all files match)
-- `{SPACE_ID}-recheck.txt` (Out of audit recheck, if necessary)
+
+    {SPACE_ID}-manifest.tsv   DuraCloud manifest as downloaded
+    {SPACE_ID}-md5.txt        Munged manifest for md5deep
+    {SPACE_ID}-audit.txt      Output of md5deep, empty if all files match
+    {SPACE_ID}-recheck.txt    Output of audit recheck, if necessary
 
 *Added in version 0.9.0* - `Duracloud::FastSyncValidation`. This variant of sync validation does not compute local hashes but instead compares the local file list (generated with `find`) to the list of content IDs in the space manifest. Local misses are rechecked as in `SyncValidation` (but without MD5 comparison).
 
@@ -181,6 +167,8 @@ When storing content a `Duracloud::NotFoundError` is raised if the space does no
 A `Duracloud::BadRequestError` is raised if the content ID is invalid.
 A `Duracloud::ConflictError` is raised if the provided MD5 digest does not match the stored digest.
 
+**Note:** duracloud-client does not currently provide for chunking of large files as, for example, the DuraCloud Sync Tool does.
+
 #### Retrieve an existing content item from DuraCloud
 
 ```
@@ -196,7 +184,7 @@ raised if the content ID exists and the stored digest does not match.
 
 If a content item is not found at the content ID, `Duracloud::Content.find` will look for a "content manifest"
 by appending ".dura-manifest" to the content ID. If the manifest is found, the content item is marked as
-"chunked". **Caution: Working with chunked files should be considered EXPERIMENTAL.**
+"chunked". **Caution: Working with chunked files should be considered EXPERIMENTAL and unsupported.**
 
 #### Update the properties for a content item
 
@@ -205,7 +193,7 @@ by appending ".dura-manifest" to the content ID. If the manifest is found, the c
  => #<Duracloud::Space space_id="rest-api-testing", store_id="(default)">
 
 >> content = space.find_content("foo3")
-D, [2016-04-29T18:31:16.975749 #32379] DEBUG -- : Duracloud::Client HEAD https://foo.duracloud.org/durastore/rest-api-testing/foo3 200 OK
+D, [2016-04-29T18:31:16.975749 #32379] DEBUG -- : Duracloud::Request HEAD https://foo.duracloud.org/durastore/rest-api-testing/foo3 200 OK
  => #<Duracloud::Content space_id="rest-api-testing", content_id="foo3", store_id=(default)>
 
 >> content.properties
@@ -213,12 +201,12 @@ D, [2016-04-29T18:31:16.975749 #32379] DEBUG -- : Duracloud::Client HEAD https:/
 
 >> content.properties["x-dura-meta-creator"] = "bob@example.com"
 >> content.save
-D, [2016-04-29T18:31:52.770195 #32379] DEBUG -- : Duracloud::Client POST https://foo.duracloud.org/durastore/rest-api-testing/foo3 200 OK
+D, [2016-04-29T18:31:52.770195 #32379] DEBUG -- : Duracloud::Request POST https://foo.duracloud.org/durastore/rest-api-testing/foo3 200 OK
 I, [2016-04-29T18:31:52.770293 #32379]  INFO -- : Content foo3 updated successfully
  => true
 
 >> content.properties["x-dura-meta-creator"]
-D, [2016-04-29T18:32:06.465928 #32379] DEBUG -- : Duracloud::Client HEAD https://foo.duracloud.org/durastore/rest-api-testing/foo3 200 OK
+D, [2016-04-29T18:32:06.465928 #32379] DEBUG -- : Duracloud::Request HEAD https://foo.duracloud.org/durastore/rest-api-testing/foo3 200 OK
  => "bob@example.com"
 ```     
 
@@ -234,11 +222,11 @@ Also, `:space_id` and `:content_id` arguments are not required, but default to t
 
 ```
 >> content = Duracloud::Content.find(space_id: 'rest-api-testing', content_id: 'contentItem.txt')
-D, [2017-01-27T17:16:45.846459 #93283] DEBUG -- : Duracloud::Client HEAD https://duke.duracloud.org/durastore/rest-api-testing/contentItem.txt 200 OK
+D, [2017-01-27T17:16:45.846459 #93283] DEBUG -- : Duracloud::Request HEAD https://duke.duracloud.org/durastore/rest-api-testing/contentItem.txt 200 OK
  => #<Duracloud::Content space_id="rest-api-testing", content_id="contentItem.txt", store_id=(default)> 
 
 >> content.copy(space_id: 'rest-api-testing2')
-D, [2017-01-27T17:17:59.848741 #93283] DEBUG -- : Duracloud::Client PUT https://duke.duracloud.org/durastore/rest-api-testing2/contentItem.txt 201 Created
+D, [2017-01-27T17:17:59.848741 #93283] DEBUG -- : Duracloud::Request PUT https://duke.duracloud.org/durastore/rest-api-testing2/contentItem.txt 201 Created
  => #<Duracloud::Content space_id="rest-api-testing2", content_id="contentItem.txt", store_id=(default)> 
 ```
 
@@ -246,18 +234,18 @@ D, [2017-01-27T17:17:59.848741 #93283] DEBUG -- : Duracloud::Client PUT https://
 
 *Added in v0.3.0; Changed in v0.4.0.*
 
-See also *Copy a content item, above.
+See also *Copy a content item*, above.
 
 ```
 This is a convenience operation -- copy and delete -- not directly supported by the DuraCloud REST API.
 
 >> content = Duracloud::Content.find(space_id: 'rest-api-testing', content_id: 'contentItem.txt')
-D, [2017-01-27T17:19:41.926994 #93286] DEBUG -- : Duracloud::Client HEAD https://duke.duracloud.org/durastore/rest-api-testing/contentItem.txt 200 OK
+D, [2017-01-27T17:19:41.926994 #93286] DEBUG -- : Duracloud::Request HEAD https://duke.duracloud.org/durastore/rest-api-testing/contentItem.txt 200 OK
  => #<Duracloud::Content space_id="rest-api-testing", content_id="contentItem.txt", store_id=(default)> 
 
 >> content.move(space_id: 'rest-api-testing2')
-D, [2017-01-27T17:20:07.542468 #93286] DEBUG -- : Duracloud::Client PUT https://duke.duracloud.org/durastore/rest-api-testing2/contentItem.txt 201 Created
-D, [2017-01-27T17:20:08.442504 #93286] DEBUG -- : Duracloud::Client DELETE https://duke.duracloud.org/durastore/rest-api-testing/contentItem.txt 200 OK
+D, [2017-01-27T17:20:07.542468 #93286] DEBUG -- : Duracloud::Request PUT https://duke.duracloud.org/durastore/rest-api-testing2/contentItem.txt 201 Created
+D, [2017-01-27T17:20:08.442504 #93286] DEBUG -- : Duracloud::Request DELETE https://duke.duracloud.org/durastore/rest-api-testing/contentItem.txt 200 OK
  => #<Duracloud::Content space_id="rest-api-testing2", content_id="contentItem.txt", store_id=(default)> 
 
 >> content.deleted?
@@ -274,14 +262,16 @@ D, [2017-01-27T17:20:08.442504 #93286] DEBUG -- : Duracloud::Client DELETE https
  => #<Duracloud::Content space_id="rest-api-testing", content_id="foo2", store_id=(default)>
 
 >> content.delete
-D, [2016-04-29T18:28:31.459962 #32379] DEBUG -- : Duracloud::Client DELETE https://foo.duracloud.org/durastore/rest-api-testing/foo2 200 OK
+D, [2016-04-29T18:28:31.459962 #32379] DEBUG -- : Duracloud::Request DELETE https://foo.duracloud.org/durastore/rest-api-testing/foo2 200 OK
 I, [2016-04-29T18:28:31.460069 #32379]  INFO -- : Content foo2 deleted successfully
  => #<Duracloud::Content space_id="rest-api-testing", content_id="foo2", store_id=(default)>
 
 >> Duracloud::Content.exist?(space_id: "rest-api-testing", content_id: "foo2")
-D, [2016-04-29T18:29:03.935451 #32379] DEBUG -- : Duracloud::Client HEAD https://foo.duracloud.org/durastore/rest-api-testing/foo2 404 Not Found
+D, [2016-04-29T18:29:03.935451 #32379] DEBUG -- : Duracloud::Request HEAD https://foo.duracloud.org/durastore/rest-api-testing/foo2 404 Not Found
  => false
 ```
+
+*Added in v0.10.0.pre* `Duracloud::Content.delete` class method.
 
 ### Reports
 
@@ -295,7 +285,7 @@ The audit logs, bit integrity reports and manifests are accessible in their orig
  => #<Duracloud::AuditLog:0x007fd44c077f38 @space_id="rest-api-testing", @store_id=nil, @response=nil>
 
 >> audit_log.csv
-D, [2016-05-19T13:36:49.107520 #28754] DEBUG -- : Duracloud::Client GET https://duke.duracloud.org/durastore/audit/rest-api-testing 200 OK
+D, [2016-05-19T13:36:49.107520 #28754] DEBUG -- : Duracloud::Request GET https://duke.duracloud.org/durastore/audit/rest-api-testing 200 OK
  => #<CSV::Table mode:col_or_row row_count:168>
 ```
 
@@ -307,20 +297,20 @@ D, [2016-05-19T13:36:49.107520 #28754] DEBUG -- : Duracloud::Client GET https://
  => #<Duracloud::Manifest:0x007fd44d3c7048 @space_id="rest-api-testing", @store_id=nil, @tsv_response=nil, @bagit_response=nil>
 
 >> manifest.csv
-D, [2016-05-19T13:37:39.831013 #28754] DEBUG -- : Duracloud::Client GET https://duke.duracloud.org/durastore/manifest/rest-api-testing 200 OK
+D, [2016-05-19T13:37:39.831013 #28754] DEBUG -- : Duracloud::Request GET https://duke.duracloud.org/durastore/manifest/rest-api-testing 200 OK
  => #<CSV::Table mode:col_or_row row_count:10>
 
 >> manifest.csv.headers
  => ["space_id", "content_id", "md5"]
 ```
 
-*Added in v0.5.0: Support for asynchronous generation of manifest (Generate Manifest API)*
+*Added in v0.5.0* Support for asynchronous generation of manifest (Generate Manifest API)
 
 ```
 >> manifest = Duracloud::Manifest.new('ddr-validation')
  => #<Duracloud::Manifest:0x007f8fd82fe328 @space_id="ddr-validation", @store_id=nil>
 >> manifest.generate
- D, [2017-06-06T20:49:50.191301 #92029] DEBUG -- : Duracloud::Client POST https://duke.duracloud.org/durastore/manifest/ddr-validation 202 Accepted
+ D, [2017-06-06T20:49:50.191301 #92029] DEBUG -- : Duracloud::Request POST https://duke.duracloud.org/durastore/manifest/ddr-validation 202 Accepted
  I, [2017-06-06T20:49:50.191414 #92029]  INFO -- : We are processing your manifest generation request. To retrieve your file, please poll the URI in the Location header of this response: (https://duke.duracloud.org/durastore/x-duracloud-admin/generated-manifests/manifest-ddr-validation_amazon_s3_2017-06-07-00-49-50.txt.gz).
  => "https://duke.duracloud.org/durastore/x-duracloud-admin/generated-manifests/manifest-ddr-validation_amazon_s3_2017-06-07-00-49-50.txt.gz"
 ```  
@@ -333,7 +323,7 @@ D, [2016-05-19T13:37:39.831013 #28754] DEBUG -- : Duracloud::Client GET https://
  => #<Duracloud::BitIntegrityReport:0x007f88e39a2950 @space_id="rest-api-testing", @store_id=nil, @report=nil, @properties=nil>
 
 >> bit_integrity_report.csv
-D, [2016-05-19T15:39:33.538448 #29974] DEBUG -- : Duracloud::Client GET https://duke.duracloud.org/durastore/bit-integrity/rest-api-testing 200 OK
+D, [2016-05-19T15:39:33.538448 #29974] DEBUG -- : Duracloud::Request GET https://duke.duracloud.org/durastore/bit-integrity/rest-api-testing 200 OK
  => #<CSV::Table mode:col_or_row row_count:8> 
 ```
 

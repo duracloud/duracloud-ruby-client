@@ -66,14 +66,12 @@ EOS
     private
 
     def configure_client
-      Client.configure do |config|
-        config.user     = user     if user
-        config.password = password if password
-        config.host     = host     if host
-        config.port     = port     if port
+      Duracloud.user     = user     if user
+      Duracloud.password = password if password
+      Duracloud.host     = host     if host
+      Duracloud.port     = port     if port
 
-        config.silence_logging! unless logging
-      end
+      Duracloud.silence_logging! unless logging
     end
 
   end

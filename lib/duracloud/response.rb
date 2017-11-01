@@ -8,12 +8,10 @@ module Duracloud
     attr_reader :original_response
 
     delegate [:header, :body, :code, :ok?, :redirect?, :status, :reason] => :original_response,
-             :content_type => :header,
+             [:content_type, :request_method, :request_uri, :request_query] => :header,
              :empty? => :body
 
     def_delegator :header, :request_uri, :url
-    def_delegator :header, :request_method
-    def_delegator :header, :request_query
 
     def initialize(original_response)
       @original_response = original_response
@@ -49,5 +47,6 @@ module Duracloud
     def modified
       DateTime.parse(header["last-modified"].first) rescue nil
     end
+
   end
 end

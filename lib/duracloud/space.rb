@@ -1,5 +1,5 @@
-require "date"
-require "nokogiri"
+require 'date'
+require 'nokogiri'
 
 module Duracloud
   #

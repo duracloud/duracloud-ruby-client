@@ -1,3 +1,5 @@
+require 'hashie'
+
 module Duracloud
   class AbstractEntity < Hashie::Dash
 

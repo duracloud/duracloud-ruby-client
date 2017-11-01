@@ -16,12 +16,10 @@ WebMock::Util::Headers.class_eval do
   end
 end
 
-Duracloud::Client.configure do |config|
-  config.host = "example.com"
-  config.user = "testuser"
-  config.password = "testpass"
-  config.silence_logging!
-end
+Duracloud.host = "example.com"
+Duracloud.user = "testuser"
+Duracloud.password = "testpass"
+Duracloud.silence_logging!
 
 RSpec.configure do |config|
   # rspec-expectations config goes here. You can use an alternate

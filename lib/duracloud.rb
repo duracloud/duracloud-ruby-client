@@ -31,8 +31,7 @@ module Duracloud
   autoload :TSV, "duracloud/tsv"
 
   class << self
-    attr_accessor :host, :port, :user, :password
-    attr_writer :logger
+    attr_writer :host, :port, :user, :password, :logger
 
     def logger
       @logger ||= Logger.new(STDERR)
@@ -40,6 +39,22 @@ module Duracloud
 
     def silence_logging!
       self.logger = Logger.new(File::NULL)
+    end
+
+    def host
+      @host ||= ENV["DURACLOUD_HOST"]
+    end
+
+    def port
+      @port ||= ENV["DURACLOUD_PORT"]
+    end
+
+    def user
+      @user ||= ENV["DURACLOUD_USER"]
+    end
+
+    def password
+      @password ||= ENV["DURACLOUD_PASSWORD"]
     end
 
     def base_url
@@ -50,10 +65,5 @@ module Duracloud
       !!user
     end
   end
-
-  self.host = ENV["DURACLOUD_HOST"]
-  self.port = ENV["DURACLOUD_PORT"]
-  self.user = ENV["DURACLOUD_USER"]
-  self.password = ENV["DURACLOUD_PASSWORD"]
 
 end

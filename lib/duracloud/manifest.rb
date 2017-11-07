@@ -69,7 +69,7 @@ module Duracloud
       url = generate(format: format)
       check_generated(url, max_tries, retry_sleep)
       Tempfile.open(["download", ".gz"], encoding: "ascii-8bit") do |gz_file|
-        client.execute(Request, :get, url) do |chunk|
+        Client.execute(Request, :get, url) do |chunk|
           gz_file.write(chunk)
         end
         gz_file.close
@@ -100,19 +100,15 @@ module Duracloud
 
     private
 
-    def client
-      @client ||= Client.new
-    end
-
     def check_generated(url, max_tries, retry_sleep)
       tries = 0
       begin
         tries += 1
-        client.logger.debug "Checking for generated manifest (try #{tries}/#{max_tries}) ... "
-        client.execute(Request, :head, url)
+        Duracloud.logger.debug "Checking for generated manifest (try #{tries}/#{max_tries}) ... "
+        Client.execute(Request, :head, url)
       rescue NotFoundError => e
         if tries < max_tries
-          client.logger.debug "Retrying in #{retry_sleep} seconds ..."
+          Duracloud.logger.debug "Retrying in #{retry_sleep} seconds ..."
           sleep(retry_sleep)
           retry
         else
